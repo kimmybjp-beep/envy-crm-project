@@ -1,0 +1,352 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Apple ENVY Rewards - How to Scan QR</title>
+  <style>
+    @page {
+      size: A4;
+      margin: 0;
+    }
+
+    :root {
+      --ruby: #b50022;
+      --deep: #5b0011;
+      --dark: #151313;
+      --gold: #d9b76f;
+      --pink: #fff1f4;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #d9d9d9;
+      color: var(--dark);
+      font-family: Arial, "Noto Sans Thai", Tahoma, sans-serif;
+    }
+
+    .sheet {
+      position: relative;
+      width: 210mm;
+      height: 297mm;
+      margin: 0 auto;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 90% 8%, rgba(255,255,255,.45), transparent 11%),
+        linear-gradient(180deg, #c90029 0 82mm, var(--pink) 82mm 100%);
+    }
+
+    .sheet::before {
+      content: "";
+      position: absolute;
+      right: -32mm;
+      top: -20mm;
+      width: 102mm;
+      height: 102mm;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 33% 28%, rgba(255,255,255,.56), transparent 9%),
+        radial-gradient(circle at 48% 42%, #ff4058, #9d001c 65%, #4a000d 100%);
+      box-shadow: -20px 28px 54px rgba(66, 0, 10, .22);
+      opacity: .9;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      padding: 8mm 13mm 8mm;
+    }
+
+    .topline {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      color: #fff;
+    }
+
+    .brand {
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .2em;
+      text-transform: uppercase;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 34px;
+      padding: 8px 15px;
+      border: 1px solid rgba(255,255,255,.3);
+      border-radius: 999px;
+      background: rgba(255,255,255,.14);
+      color: #fff;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    h1 {
+      width: 138mm;
+      margin: 7mm 0 0;
+      color: #fff;
+      font-size: 34px;
+      line-height: .94;
+      font-weight: 950;
+      letter-spacing: -.03em;
+    }
+
+    .lead {
+      width: 122mm;
+      margin: 3mm 0 0;
+      color: rgba(255,255,255,.88);
+      font-size: 14px;
+      line-height: 1.42;
+      font-weight: 800;
+    }
+
+    .hero-card {
+      display: grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap: 7mm;
+      margin-top: 7mm;
+      border-radius: 10mm;
+      padding: 6mm;
+      background: #fff;
+      box-shadow: 0 18px 48px rgba(101,0,19,.18);
+    }
+
+    .steps {
+      display: grid;
+      gap: 2.6mm;
+    }
+
+    .step {
+      display: grid;
+      grid-template-columns: 10mm 1fr;
+      gap: 3mm;
+      align-items: start;
+    }
+
+    .num {
+      display: grid;
+      place-items: center;
+      width: 10mm;
+      height: 10mm;
+      border-radius: 4mm;
+      background: var(--ruby);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 950;
+      box-shadow: 0 10px 22px rgba(181,0,34,.24);
+    }
+
+    .step h2 {
+      margin: 0;
+      color: var(--ruby);
+      font-size: 16px;
+      line-height: 1.2;
+      font-weight: 950;
+    }
+
+    .step p {
+      margin: 1mm 0 0;
+      color: rgba(21,19,19,.68);
+      font-size: 11px;
+      line-height: 1.42;
+      font-weight: 700;
+    }
+
+    .phone {
+      position: relative;
+      height: 88mm;
+      border-radius: 9mm;
+      padding: 4.5mm;
+      background: var(--dark);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 18px 34px rgba(0,0,0,.16);
+    }
+
+    .phone-screen {
+      height: 79mm;
+      border-radius: 7mm;
+      padding: 4.5mm;
+      background: linear-gradient(180deg, #fff6f8, #fff);
+    }
+
+    .app-head {
+      border-radius: 6mm;
+      padding: 4.5mm;
+      color: #fff;
+      background: linear-gradient(135deg, var(--deep), var(--ruby));
+    }
+
+    .app-head small {
+      display: block;
+      color: rgba(255,255,255,.78);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+    }
+
+    .app-head b {
+      display: block;
+      margin-top: 2mm;
+      font-size: 18px;
+      line-height: 1;
+    }
+
+    .upload {
+      margin-top: 4mm;
+      border: 2px dashed rgba(181,0,34,.25);
+      border-radius: 6mm;
+      padding: 4mm;
+      background: #fff5f7;
+      text-align: center;
+    }
+
+    .qr {
+      display: grid;
+      place-items: center;
+      width: 24mm;
+      height: 24mm;
+      margin: 0 auto 3mm;
+      border-radius: 6mm;
+      background: #fff;
+      color: var(--ruby);
+      font-size: 34px;
+      font-weight: 950;
+      line-height: .8;
+      box-shadow: 0 8px 24px rgba(101,0,19,.12);
+    }
+
+    .button {
+      margin-top: 4mm;
+      border-radius: 5mm;
+      padding: 4mm;
+      background: var(--ruby);
+      color: #fff;
+      text-align: center;
+      font-size: 16px;
+      font-weight: 950;
+    }
+
+    .tips {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4mm;
+      margin-top: 5mm;
+    }
+
+    .tip {
+      min-height: 22mm;
+      border-radius: 6mm;
+      padding: 4mm;
+      background: #fff;
+      box-shadow: 0 12px 34px rgba(101,0,19,.1);
+    }
+
+    .tip b {
+      display: block;
+      color: var(--ruby);
+      font-size: 13px;
+      line-height: 1.25;
+    }
+
+    .tip p {
+      margin: 2mm 0 0;
+      color: rgba(21,19,19,.65);
+      font-size: 10.5px;
+      line-height: 1.42;
+      font-weight: 700;
+    }
+
+    @media print {
+      body { background: #fff; }
+      .sheet { margin: 0; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <div class="content">
+      <div class="topline">
+        <div class="brand">Apple ENVY Rewards</div>
+        <div class="pill">QR Scan Guide</div>
+      </div>
+
+      <h1>สแกน QR เพื่อสะสมแต้ม ENVY Rewards</h1>
+      <p class="lead">ไม่ต้องเปิดกล้องสดก็ได้ เลือกรูป QR ที่เซฟไว้ในมือถือ แล้วกดส่ง ระบบจะบันทึกแต้มให้ร้านอัตโนมัติ</p>
+
+      <section class="hero-card">
+        <div class="steps">
+          <div class="step">
+            <div class="num">1</div>
+            <div>
+              <h2>เข้าเมนู Scan</h2>
+              <p>Login ด้วยเบอร์ร้านที่ได้รับอนุมัติ แล้วกดปุ่ม Scan ที่แถบล่าง</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">2</div>
+            <div>
+              <h2>เลือกรูป QR จากมือถือ</h2>
+              <p>กด Choose File แล้วเลือกรูป QR ที่ถ่ายหรือเซฟไว้ สามารถเลือกหลายรูปพร้อมกันได้</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">3</div>
+            <div>
+              <h2>กดบันทึก Scan</h2>
+              <p>ระบบจะอ่าน QR และส่งเข้าระบบสะสมแต้ม ถ้าสำเร็จแต้มร้านจะเพิ่มทันที</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="num">4</div>
+            <div>
+              <h2>แลกของรางวัล</h2>
+              <p>เข้าเมนู Rewards เพื่อใช้แต้มแลกของรางวัลจาก Apple ENVY</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="phone">
+          <div class="phone-screen">
+            <div class="app-head">
+              <small>ENVY Reward CRM</small>
+              <b>Reward QR Scan</b>
+            </div>
+            <div class="upload">
+              <div class="qr">▦<br>▦</div>
+              <b>Saved QR image</b>
+              <p>Choose File</p>
+            </div>
+            <div class="button">Submit Scan</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="tips">
+        <div class="tip">
+          <b>ใช้รูปที่ชัด</b>
+          <p>QR ต้องไม่เบลอ ไม่มืด และไม่โดนครอปจนขอบหาย</p>
+        </div>
+        <div class="tip">
+          <b>ห้ามใช้ QR ซ้ำใน Tier เดิม</b>
+          <p>ถ้าขึ้นว่าเคยสแกนแล้ว แปลว่าโค้ดนั้นถูกนับใน tier นี้ไปแล้ว</p>
+        </div>
+        <div class="tip">
+          <b>ร้านต้อง Approved ก่อน</b>
+          <p>ถ้ายังรออนุมัติ จะยัง Login และ Scan เพื่อสะสมแต้มไม่ได้</p>
+        </div>
+      </section>
+
+    </div>
+  </main>
+</body>
+</html>
