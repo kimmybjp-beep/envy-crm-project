@@ -71,7 +71,7 @@ export default async function RegisterPage({
           <div className="overflow-hidden rounded-lg bg-charcoal text-white shadow-luxury">
             <div className="bg-ruby-900 px-6 py-5">
               <p className="text-sm font-semibold uppercase tracking-[0.22em] text-champagne">Apple ENVY</p>
-              <h2 className="mt-2 text-2xl font-semibold">Sales Visit System</h2>
+              <h2 className="mt-2 text-2xl font-semibold">ENVY Reward CRM</h2>
             </div>
             <div className="space-y-4 p-6">
               <Feature icon={<ShieldCheck size={18} />} title="Admin approval" text="ร้านใหม่ต้องรออนุมัติก่อนใช้งาน" />

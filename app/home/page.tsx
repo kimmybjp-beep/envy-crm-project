@@ -29,7 +29,7 @@ export default async function HomePage() {
   if (!store || store.status !== "APPROVED") redirect("/login?message=not-approved");
 
   return (
-    <SalesShell title="Sales Visit System" subtitle="Home dashboard for approved Apple ENVY store">
+    <SalesShell title="ENVY Reward Home" subtitle="Store reward dashboard for approved Apple ENVY outlets">
       <div className="space-y-5">
         <HeroCard>
           <p className="inline-flex rounded-full bg-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.16em]">Approved Store</p>
@@ -50,7 +50,7 @@ export default async function HomePage() {
           <Link href="/scan" className="rounded-[24px] bg-white p-6 shadow-luxury ring-1 ring-ruby-900/10 transition hover:-translate-y-0.5">
             <ScanLine className="mb-5 rounded-2xl bg-ruby-900 p-3 text-white" size={54} />
             <p className="text-2xl font-black text-charcoal">สแกน</p>
-            <p className="mt-2 text-sm text-charcoal/60">สแกน QR เพื่อบันทึก sales tracking และเพิ่มแต้ม</p>
+            <p className="mt-2 text-sm text-charcoal/60">สแกน QR เพื่อสะสมแต้มและบันทึก reward activity</p>
           </Link>
           <Link href="/rewards" className="rounded-[24px] bg-white p-6 shadow-luxury ring-1 ring-ruby-900/10 transition hover:-translate-y-0.5">
             <Gift className="mb-5 rounded-2xl bg-ruby-900 p-3 text-white" size={54} />

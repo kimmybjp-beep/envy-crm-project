@@ -6,14 +6,14 @@ export default function LandingPage() {
     <main className="min-h-screen bg-[#fff1f4]">
       <section className="mx-auto grid min-h-screen max-w-5xl content-center px-5 py-10">
         <div className="rounded-[32px] bg-gradient-to-br from-[#8b0018] via-[#ba001f] to-[#e00832] p-6 text-white shadow-luxury sm:p-9">
-          <p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">ENVY Field Sales</p>
-          <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-6xl">Sales Visit System</h1>
+          <p className="text-xs font-black uppercase tracking-[0.22em] text-white/75">ENVY Reward CRM</p>
+          <h1 className="mt-2 text-4xl font-black tracking-tight sm:text-6xl">Apple ENVY Rewards</h1>
           <div className="mt-8 overflow-hidden rounded-[28px] bg-[#4a000d]/75 p-7 ring-1 ring-white/15">
-            <span className="inline-flex rounded-full bg-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.16em]">Field Sales</span>
+            <span className="inline-flex rounded-full bg-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.16em]">Reward Tracking</span>
             <div className="mt-8 flex items-end justify-between gap-6">
               <div>
                 <p className="font-serif text-7xl font-black leading-none">envy</p>
-                <p className="mt-3 max-w-xs text-lg font-semibold text-white/88">store visit, tracking, rewards, and new outlet opening</p>
+                <p className="mt-3 max-w-xs text-lg font-semibold text-white/88">scan QR, collect points, redeem rewards, and manage premium outlets</p>
               </div>
               <Apple className="hidden text-white/20 sm:block" size={140} />
             </div>

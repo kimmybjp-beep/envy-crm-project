@@ -116,7 +116,7 @@ export function AdminShell({
                 envy
               </p>
               <p style={{ margin: "10px 0 0", maxWidth: 360, fontSize: 18, fontWeight: 800, color: "rgba(255,255,255,.9)" }}>
-                store approvals, QR batches, and field communication
+                store approvals, QR batches, rewards, and admin communication
               </p>
             </div>
           </div>

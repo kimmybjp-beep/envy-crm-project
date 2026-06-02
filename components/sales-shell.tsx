@@ -17,7 +17,7 @@ export function SalesShell({
         <div className="mx-auto max-w-5xl px-5 py-5">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-white/80">ENVY Field Sales</p>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-white/80">ENVY Reward CRM</p>
               <h1 className="mt-1 text-3xl font-black tracking-tight sm:text-4xl">{title}</h1>
               {subtitle ? <p className="mt-2 max-w-2xl text-sm text-white/75">{subtitle}</p> : null}
             </div>
