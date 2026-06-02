@@ -23,6 +23,10 @@ create index if not exists qr_codes_batch_id_idx on public.qr_codes (batch_id);
 alter table public.qr_batches enable row level security;
 alter table public.qr_codes enable row level security;
 
+grant usage on schema public to anon, authenticated;
+grant select, insert, update, delete on public.qr_batches to anon, authenticated;
+grant select, insert, update, delete on public.qr_codes to anon, authenticated;
+
 drop policy if exists "Public can manage qr batches" on public.qr_batches;
 create policy "Public can manage qr batches"
   on public.qr_batches for all

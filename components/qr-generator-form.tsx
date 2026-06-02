@@ -3,11 +3,17 @@
 import { useState } from "react";
 import { Download, QrCode, Sparkles } from "lucide-react";
 import { adminUi } from "@/components/admin-shell";
-import { getSupabaseClient } from "@/lib/supabase";
 
 type QrGeneratorState = {
   ok: boolean;
   message: string;
+};
+
+type QrGeneratorResponse = {
+  ok: boolean;
+  message: string;
+  distributorName?: string;
+  codes?: string[];
 };
 
 const initialState: QrGeneratorState = {
@@ -35,45 +41,20 @@ export function QrGeneratorForm() {
     }
 
     try {
-      const supabase = getSupabaseClient();
-      const { data: batch, error: batchError } = await supabase
-        .from("qr_batches")
-        .insert({
-          distributor_name: distributorName,
-          quantity
-        })
-        .select("id")
-        .single();
+      const response = await fetch("/api/qr-generator", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ distributorName, quantity })
+      });
+      const result = (await response.json()) as QrGeneratorResponse;
 
-      if (batchError || !batch) {
-        setState({
-          ok: false,
-          message: `สร้าง batch ไม่สำเร็จ: ${batchError?.code ?? "NO_CODE"} ${batchError?.message ?? "No batch returned"}`
-        });
-        setIsPending(false);
+      if (!result.ok || !result.codes?.length || !result.distributorName) {
+        setState({ ok: false, message: result.message || "สร้าง QR ไม่สำเร็จ" });
         return;
       }
 
-      const codes = buildUniqueCodes(quantity);
-      const { error: codeError } = await supabase.from("qr_codes").insert(
-        codes.map((code) => ({
-          batch_id: batch.id,
-          distributor_name: distributorName,
-          code
-        }))
-      );
-
-      if (codeError) {
-        setState({
-          ok: false,
-          message: `บันทึก QR ลง database ไม่สำเร็จ: ${codeError.code ?? "NO_CODE"} ${codeError.message}`
-        });
-        setIsPending(false);
-        return;
-      }
-
-      setState({ ok: true, message: `สร้าง QR สำเร็จ ${codes.length} รายการ กำลังดาวน์โหลด ZIP` });
-      await downloadQrZip(distributorName, codes);
+      setState({ ok: true, message: result.message });
+      await downloadQrZip(result.distributorName, result.codes);
     } catch (error) {
       setState({
         ok: false,
@@ -191,18 +172,6 @@ async function downloadQrZip(distributorName: string, codes: string[]) {
   anchor.click();
   anchor.remove();
   URL.revokeObjectURL(url);
-}
-
-function buildUniqueCodes(quantity: number) {
-  const codes = new Set<string>();
-  const values = new Uint8Array(18);
-
-  while (codes.size < quantity) {
-    crypto.getRandomValues(values);
-    codes.add(Array.from(values, (value) => (value % 10).toString()).join(""));
-  }
-
-  return Array.from(codes);
 }
 
 async function createQrSvg(code: string, distributorName: string) {
