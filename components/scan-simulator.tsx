@@ -27,7 +27,6 @@ declare global {
 
 export function ScanSimulator({ stores }: { stores: Store[] }) {
   const [storeId, setStoreId] = useState(stores[0]?.id ?? "");
-  const [manualCode, setManualCode] = useState("");
   const [codes, setCodes] = useState<string[]>([]);
   const [statusMessage, setStatusMessage] = useState("");
   const [results, setResults] = useState<ScanResult[]>([]);
@@ -37,19 +36,11 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
     [storeId, stores]
   );
 
-  function addManualCode() {
-    const normalizedCode = normalizeCode(manualCode);
-    if (!normalizedCode) return;
-    addCodes([normalizedCode]);
-    setManualCode("");
-    setStatusMessage("เพิ่ม QR code จากช่องกรอกเองแล้ว");
-  }
-
   async function decodeSavedImages(files: FileList | null) {
     if (!files?.length) return;
 
     if (!window.BarcodeDetector) {
-      setStatusMessage("Browser นี้อ่าน QR จากรูปอัตโนมัติไม่ได้ กรุณากรอก code เองจากรูป");
+      setStatusMessage("Browser นี้อ่าน QR จากรูปอัตโนมัติไม่ได้ กรุณาใช้ Chrome/Android หรือส่งรูปที่ชัดขึ้น");
       return;
     }
 
@@ -168,20 +159,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
           <p className="mt-2 text-xs text-charcoal/60">
             เลือกได้หลายรูปพร้อมกัน ไม่ต้องใช้ live camera
           </p>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
-          <PremiumInput label="QR Code ที่อ่านได้ / กรอกเอง">
-            <input
-              value={manualCode}
-              onChange={(event) => setManualCode(event.target.value)}
-              placeholder="เช่น 839201746502918374"
-              className="field-control font-mono text-lg uppercase tracking-wide"
-            />
-          </PremiumInput>
-          <LuxuryButton type="button" onClick={addManualCode} className="self-end" variant="outline">
-            เพิ่ม code
-          </LuxuryButton>
         </div>
 
         {statusMessage ? <p className="rounded-lg bg-ruby-50 px-4 py-3 text-sm font-semibold text-ruby-900">{statusMessage}</p> : null}
