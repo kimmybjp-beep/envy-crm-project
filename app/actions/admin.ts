@@ -15,6 +15,10 @@ const qrSchema = z.object({
   quantity: z.coerce.number().int().positive().max(5000)
 });
 
+const INVALID_QR_FORM_MESSAGE = "\u0e01\u0e23\u0e2d\u0e01\u0e0a\u0e37\u0e48\u0e2d distributor \u0e41\u0e25\u0e30\u0e08\u0e33\u0e19\u0e27\u0e19 QR \u0e43\u0e2b\u0e49\u0e16\u0e39\u0e01\u0e15\u0e49\u0e2d\u0e07";
+const QR_CODE_SAVE_ERROR_MESSAGE = "\u0e1a\u0e31\u0e19\u0e17\u0e36\u0e01 QR \u0e25\u0e07 database \u0e44\u0e21\u0e48\u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08";
+const QR_SUCCESS_PREFIX = "\u0e2a\u0e23\u0e49\u0e32\u0e07 QR \u0e2a\u0e33\u0e40\u0e23\u0e47\u0e08";
+
 export async function publishAdminMessageAction(formData: FormData) {
   const parsed = messageSchema.safeParse({
     message: formData.get("message")
@@ -46,7 +50,7 @@ export async function generateQrCodesAction(
   });
 
   if (!parsed.success) {
-    return { ok: false, message: "กรอกชื่อ distributor และจำนวน QR ให้ถูกต้อง" };
+    return { ok: false, message: INVALID_QR_FORM_MESSAGE };
   }
 
   const supabase = getSupabaseClient();
@@ -60,7 +64,10 @@ export async function generateQrCodesAction(
     .single();
 
   if (batchError || !batch) {
-    return { ok: false, message: "สร้าง batch ไม่สำเร็จ" };
+    return {
+      ok: false,
+      message: `สร้าง batch ไม่สำเร็จ: ${batchError?.code ?? "NO_CODE"} ${batchError?.message ?? "No batch returned"}`
+    };
   }
 
   const codes = buildUniqueCodes(parsed.data.quantity);
@@ -73,13 +80,13 @@ export async function generateQrCodesAction(
   const { error } = await supabase.from("qr_codes").insert(rows);
 
   if (error) {
-    return { ok: false, message: "บันทึก QR ลง database ไม่สำเร็จ กรุณากด generate ใหม่" };
+    return { ok: false, message: `${QR_CODE_SAVE_ERROR_MESSAGE}: ${error.code ?? "NO_CODE"} ${error.message}` };
   }
 
   revalidatePath("/admin/qr-generator");
   return {
     ok: true,
-    message: `สร้าง QR สำเร็จ ${codes.length} รายการ และกำลังดาวน์โหลด ZIP`,
+    message: `${QR_SUCCESS_PREFIX} ${codes.length} รายการ และกำลังดาวน์โหลด ZIP`,
     distributorName: parsed.data.distributorName,
     codes
   };
