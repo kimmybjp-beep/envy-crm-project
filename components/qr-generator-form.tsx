@@ -1,15 +1,13 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
+import { useState } from "react";
 import { Download, QrCode, Sparkles } from "lucide-react";
-import { generateQrCodesAction } from "@/app/actions/admin";
 import { adminUi } from "@/components/admin-shell";
+import { getSupabaseClient } from "@/lib/supabase";
 
 type QrGeneratorState = {
   ok: boolean;
   message: string;
-  distributorName?: string;
-  codes?: string[];
 };
 
 const initialState: QrGeneratorState = {
@@ -18,30 +16,73 @@ const initialState: QrGeneratorState = {
 };
 
 export function QrGeneratorForm() {
-  const [state, formAction, isPending] = useActionState(generateQrCodesAction, initialState);
+  const [state, setState] = useState<QrGeneratorState>(initialState);
+  const [isPending, setIsPending] = useState(false);
 
-  useEffect(() => {
-    const distributorName = state.distributorName;
-    const codes = state.codes;
+  async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setIsPending(true);
+    setState({ ok: false, message: "" });
 
-    if (!state.ok || !codes?.length || !distributorName) return;
+    const formData = new FormData(event.currentTarget);
+    const distributorName = String(formData.get("distributorName") ?? "").trim();
+    const quantity = Number(formData.get("quantity") ?? 0);
 
-    void (async () => {
-      const files = await Promise.all(codes.map(async (code) => ({
-        name: `${safeFileName(distributorName)}-${code}.svg`,
-        content: await createQrSvg(code, distributorName)
-      })));
-      const zipBlob = createStoredZip(files);
-      const url = URL.createObjectURL(zipBlob);
-      const anchor = document.createElement("a");
-      anchor.href = url;
-      anchor.download = `${safeFileName(distributorName)}-qr-${new Date().toISOString().slice(0, 10)}.zip`;
-      document.body.appendChild(anchor);
-      anchor.click();
-      anchor.remove();
-      URL.revokeObjectURL(url);
-    })();
-  }, [state]);
+    if (!distributorName || !Number.isInteger(quantity) || quantity < 1 || quantity > 5000) {
+      setState({ ok: false, message: "กรอกชื่อ distributor และจำนวน QR ให้ถูกต้อง" });
+      setIsPending(false);
+      return;
+    }
+
+    try {
+      const supabase = getSupabaseClient();
+      const { data: batch, error: batchError } = await supabase
+        .from("qr_batches")
+        .insert({
+          distributor_name: distributorName,
+          quantity
+        })
+        .select("id")
+        .single();
+
+      if (batchError || !batch) {
+        setState({
+          ok: false,
+          message: `สร้าง batch ไม่สำเร็จ: ${batchError?.code ?? "NO_CODE"} ${batchError?.message ?? "No batch returned"}`
+        });
+        setIsPending(false);
+        return;
+      }
+
+      const codes = buildUniqueCodes(quantity);
+      const { error: codeError } = await supabase.from("qr_codes").insert(
+        codes.map((code) => ({
+          batch_id: batch.id,
+          distributor_name: distributorName,
+          code
+        }))
+      );
+
+      if (codeError) {
+        setState({
+          ok: false,
+          message: `บันทึก QR ลง database ไม่สำเร็จ: ${codeError.code ?? "NO_CODE"} ${codeError.message}`
+        });
+        setIsPending(false);
+        return;
+      }
+
+      setState({ ok: true, message: `สร้าง QR สำเร็จ ${codes.length} รายการ กำลังดาวน์โหลด ZIP` });
+      await downloadQrZip(distributorName, codes);
+    } catch (error) {
+      setState({
+        ok: false,
+        message: `เกิด error: ${error instanceof Error ? error.message : String(error)}`
+      });
+    } finally {
+      setIsPending(false);
+    }
+  }
 
   return (
     <section style={{ ...adminUi.panel, overflow: "hidden" }}>
@@ -102,7 +143,7 @@ export function QrGeneratorForm() {
           </div>
         ) : null}
 
-        <form action={formAction} style={{
+        <form onSubmit={handleSubmit} style={{
           display: "grid",
           gridTemplateColumns: "minmax(220px,1fr) 170px auto",
           gap: 14,
@@ -134,6 +175,34 @@ export function QrGeneratorForm() {
       </div>
     </section>
   );
+}
+
+async function downloadQrZip(distributorName: string, codes: string[]) {
+  const files = await Promise.all(codes.map(async (code) => ({
+    name: `${safeFileName(distributorName)}-${code}.svg`,
+    content: await createQrSvg(code, distributorName)
+  })));
+  const zipBlob = createStoredZip(files);
+  const url = URL.createObjectURL(zipBlob);
+  const anchor = document.createElement("a");
+  anchor.href = url;
+  anchor.download = `${safeFileName(distributorName)}-qr-${new Date().toISOString().slice(0, 10)}.zip`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(url);
+}
+
+function buildUniqueCodes(quantity: number) {
+  const codes = new Set<string>();
+  const values = new Uint8Array(18);
+
+  while (codes.size < quantity) {
+    crypto.getRandomValues(values);
+    codes.add(Array.from(values, (value) => (value % 10).toString()).join(""));
+  }
+
+  return Array.from(codes);
 }
 
 async function createQrSvg(code: string, distributorName: string) {
