@@ -109,8 +109,9 @@
 
     .hero-card {
       display: grid;
-      grid-template-columns: 1.05fr .95fr;
-      gap: 7mm;
+      grid-template-columns: minmax(0, 1fr) 76mm;
+      gap: 6mm;
+      align-items: center;
       margin-top: 7mm;
       border-radius: 10mm;
       padding: 6mm;
@@ -120,7 +121,7 @@
 
     .steps {
       display: grid;
-      gap: 2.6mm;
+      gap: 2.2mm;
     }
 
     .step {
@@ -146,7 +147,7 @@
     .step h2 {
       margin: 0;
       color: var(--ruby);
-      font-size: 16px;
+      font-size: 15px;
       line-height: 1.2;
       font-weight: 950;
     }
@@ -154,30 +155,33 @@
     .step p {
       margin: 1mm 0 0;
       color: rgba(21,19,19,.68);
-      font-size: 11px;
+      font-size: 10.5px;
       line-height: 1.42;
       font-weight: 700;
     }
 
     .phone {
       position: relative;
-      height: 88mm;
-      border-radius: 9mm;
-      padding: 4.5mm;
+      width: 76mm;
+      height: 86mm;
+      border-radius: 8mm;
+      padding: 3.4mm;
       background: var(--dark);
       box-shadow: inset 0 0 0 1px rgba(255,255,255,.1), 0 18px 34px rgba(0,0,0,.16);
     }
 
     .phone-screen {
+      display: flex;
       height: 79mm;
-      border-radius: 7mm;
-      padding: 4.5mm;
+      flex-direction: column;
+      border-radius: 6mm;
+      padding: 3.4mm;
       background: linear-gradient(180deg, #fff6f8, #fff);
     }
 
     .app-head {
-      border-radius: 6mm;
-      padding: 4.5mm;
+      border-radius: 5mm;
+      padding: 3.6mm;
       color: #fff;
       background: linear-gradient(135deg, var(--deep), var(--ruby));
     }
@@ -194,15 +198,20 @@
     .app-head b {
       display: block;
       margin-top: 2mm;
-      font-size: 18px;
+      font-size: 16px;
       line-height: 1;
     }
 
     .upload {
-      margin-top: 4mm;
+      display: flex;
+      flex: 1;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-top: 3mm;
       border: 2px dashed rgba(181,0,34,.25);
-      border-radius: 6mm;
-      padding: 4mm;
+      border-radius: 5mm;
+      padding: 3mm;
       background: #fff5f7;
       text-align: center;
     }
@@ -210,26 +219,27 @@
     .qr {
       display: grid;
       place-items: center;
-      width: 24mm;
-      height: 24mm;
-      margin: 0 auto 3mm;
-      border-radius: 6mm;
+      width: 19mm;
+      height: 19mm;
+      margin: 0 auto 2mm;
+      border-radius: 4mm;
       background: #fff;
       color: var(--ruby);
-      font-size: 34px;
+      font-size: 24px;
       font-weight: 950;
       line-height: .8;
       box-shadow: 0 8px 24px rgba(101,0,19,.12);
     }
 
     .button {
-      margin-top: 4mm;
+      flex-shrink: 0;
+      margin: 3mm 5mm 0;
       border-radius: 5mm;
-      padding: 4mm;
+      padding: 3.6mm;
       background: var(--ruby);
       color: #fff;
       text-align: center;
-      font-size: 16px;
+      font-size: 14px;
       font-weight: 950;
     }
 
