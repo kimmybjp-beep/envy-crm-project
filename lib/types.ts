@@ -45,3 +45,22 @@ export type QrCodeRecord = {
   code: string;
   created_at: string;
 };
+
+export type Reward = {
+  id: string;
+  name: string;
+  description: string | null;
+  points_required: number;
+  stock: number;
+  is_active: boolean;
+  created_at: string;
+};
+
+export type RewardRedemption = {
+  id: string;
+  reward_id: string;
+  store_id: string;
+  points_spent: number;
+  status: string;
+  created_at: string;
+};

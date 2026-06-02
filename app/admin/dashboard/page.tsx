@@ -1,0 +1,83 @@
+import Link from "next/link";
+import { AdminShell, adminUi } from "@/components/admin-shell";
+import { getSupabaseClient } from "@/lib/supabase";
+import type { Scan, Store, StoreTier } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
+
+const tiers: StoreTier[] = ["DISTRIBUTOR", "TIER2", "TIER3"];
+
+export default async function AdminDashboardPage() {
+  const supabase = getSupabaseClient();
+  const [{ data: stores }, { data: scans }] = await Promise.all([
+    supabase.from("stores").select("*").returns<Store[]>(),
+    supabase.from("scans").select("*").order("scanned_at", { ascending: false }).returns<Scan[]>()
+  ]);
+
+  const storeRows = stores ?? [];
+  const scanRows = scans ?? [];
+  const storesById = new Map(storeRows.map((store) => [store.id, store]));
+
+  return (
+    <AdminShell title="Interactive Dashboard" subtitle="Track store activity, points, and scans by tier">
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 16, marginBottom: 18 }}>
+        <Metric label="Total Stores" value={storeRows.length} />
+        <Metric label="Approved" value={storeRows.filter((store) => store.status === "APPROVED").length} />
+        <Metric label="Pending" value={storeRows.filter((store) => store.status === "PENDING_APPROVAL").length} />
+        <Metric label="Total Scans" value={scanRows.length} />
+        <Metric label="Total Points" value={storeRows.reduce((sum, store) => sum + store.points, 0)} />
+      </div>
+
+      <section style={{ ...adminUi.panel, padding: 22, marginBottom: 18 }}>
+        <h2 style={{ margin: 0, fontSize: 24, fontWeight: 950 }}>Tier Pages</h2>
+        <p style={{ margin: "6px 0 0", color: "rgba(21,19,19,.58)" }}>Click each card to open a separated tier dashboard.</p>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(220px,1fr))", gap: 14, marginTop: 14 }}>
+          {tiers.map((tier) => (
+            <Link key={tier} href={`/admin/dashboard/${tier}`} style={{ textDecoration: "none", color: adminUi.charcoal, border: "1px solid rgba(101,0,19,.1)", borderRadius: 18, padding: 18 }}>
+              <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950 }}>{tier}</p>
+              <p style={{ margin: "10px 0 0", fontSize: 32, fontWeight: 950 }}>{storeRows.filter((store) => store.tier === tier).length} stores</p>
+              <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)" }}>{scanRows.filter((scan) => scan.tier_level === tier).length} scans recorded</p>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(320px,.75fr)", gap: 18 }}>
+        <section style={{ ...adminUi.panel, overflow: "hidden" }}>
+          <div style={{ padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)", fontWeight: 950 }}>Top Stores by Points</div>
+          {[...storeRows].sort((a, b) => b.points - a.points).slice(0, 12).map((store) => (
+            <div key={store.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 12, padding: 16, borderBottom: "1px solid rgba(101,0,19,.08)" }}>
+              <b>{store.name}</b>
+              <span>{store.tier}</span>
+              <span>{store.status}</span>
+              <span style={{ color: adminUi.ruby, fontWeight: 950 }}>{store.points} pts</span>
+            </div>
+          ))}
+        </section>
+
+        <section style={{ ...adminUi.panel, padding: 20 }}>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950 }}>Recent Scans</h2>
+          <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+            {scanRows.slice(0, 8).map((scan) => (
+              <div key={scan.id} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 14, padding: 12 }}>
+                <p style={{ margin: 0, fontWeight: 950 }}>{storesById.get(scan.store_id ?? "")?.name ?? "Unknown store"}</p>
+                <p style={{ margin: "4px 0 0", color: adminUi.ruby, fontWeight: 900 }}>{scan.tier_level}</p>
+                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>{new Date(scan.scanned_at).toLocaleString()}</p>
+              </div>
+            ))}
+            {!scanRows.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No scans yet.</p> : null}
+          </div>
+        </section>
+      </div>
+    </AdminShell>
+  );
+}
+
+function Metric({ label, value }: { label: string; value: number }) {
+  return (
+    <div style={{ ...adminUi.panel, padding: 20 }}>
+      <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontWeight: 800 }}>{label}</p>
+      <p style={{ margin: "8px 0 0", color: adminUi.ruby, fontSize: 38, fontWeight: 950 }}>{value}</p>
+    </div>
+  );
+}

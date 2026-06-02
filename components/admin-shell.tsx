@@ -1,6 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
-import { QrCode, ShieldCheck, Store } from "lucide-react";
+import { BarChart3, Database, Gift, QrCode, ShieldCheck, Store } from "lucide-react";
 import { signOutAction } from "@/app/actions/auth";
 
 const ruby = "#a9001f";
@@ -55,6 +55,9 @@ export function AdminShell({
               border: "1px solid rgba(255,255,255,.2)"
             }}>
               <AdminNav href="/admin" icon={<Store size={16} />} label="Stores" />
+              <AdminNav href="/admin/dashboard" icon={<BarChart3 size={16} />} label="Dashboard" />
+              <AdminNav href="/admin/rewards" icon={<Gift size={16} />} label="Rewards" />
+              <AdminNav href="/admin/database" icon={<Database size={16} />} label="Data" />
               <AdminNav href="/admin/qr-generator" icon={<QrCode size={16} />} label="QR" />
               <form action={signOutAction}>
                 <button style={{

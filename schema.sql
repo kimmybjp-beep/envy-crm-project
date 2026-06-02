@@ -114,12 +114,33 @@ create table if not exists public.qr_codes (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.rewards (
+  id uuid primary key default gen_random_uuid(),
+  name text not null,
+  description text,
+  points_required integer not null check (points_required > 0),
+  stock integer not null default 0 check (stock >= 0),
+  is_active boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table if not exists public.reward_redemptions (
+  id uuid primary key default gen_random_uuid(),
+  reward_id uuid not null references public.rewards (id),
+  store_id uuid not null references public.stores (id),
+  points_spent integer not null check (points_spent > 0),
+  status text not null default 'PENDING',
+  created_at timestamptz not null default now()
+);
+
 create index if not exists stores_status_idx on public.stores (status);
 create index if not exists stores_tier_idx on public.stores (tier);
 create index if not exists scans_store_id_idx on public.scans (store_id);
 create index if not exists scans_scanned_at_idx on public.scans (scanned_at desc);
 create index if not exists admin_messages_active_idx on public.admin_messages (is_active, created_at desc);
 create index if not exists qr_codes_batch_id_idx on public.qr_codes (batch_id);
+create index if not exists rewards_active_idx on public.rewards (is_active, created_at desc);
+create index if not exists reward_redemptions_store_idx on public.reward_redemptions (store_id, created_at desc);
 
 create or replace function public.register_scan(
   p_store_id uuid,
@@ -185,6 +206,8 @@ alter table public.scans enable row level security;
 alter table public.admin_messages enable row level security;
 alter table public.qr_batches enable row level security;
 alter table public.qr_codes enable row level security;
+alter table public.rewards enable row level security;
+alter table public.reward_redemptions enable row level security;
 
 drop policy if exists "Public can insert pending stores" on public.stores;
 create policy "Public can insert pending stores"
@@ -240,5 +263,22 @@ create policy "Public can manage qr batches"
 drop policy if exists "Public can manage qr codes" on public.qr_codes;
 create policy "Public can manage qr codes"
   on public.qr_codes for all
+  using (true)
+  with check (true);
+
+drop policy if exists "Public can read active rewards" on public.rewards;
+create policy "Public can read active rewards"
+  on public.rewards for select
+  using (is_active = true);
+
+drop policy if exists "Public can manage rewards" on public.rewards;
+create policy "Public can manage rewards"
+  on public.rewards for all
+  using (true)
+  with check (true);
+
+drop policy if exists "Public can manage reward redemptions" on public.reward_redemptions;
+create policy "Public can manage reward redemptions"
+  on public.reward_redemptions for all
   using (true)
   with check (true);

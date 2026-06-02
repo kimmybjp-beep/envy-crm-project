@@ -7,6 +7,13 @@ const messages: Record<string, string> = {
   "review-error": "Store review could not be saved.",
   "message-error": "Admin message could not be published.",
   "message-saved": "Admin message published.",
+  "reward-error": "Reward could not be saved.",
+  "reward-saved": "Reward saved.",
+  "redeem-success": "Reward redemption submitted.",
+  "redeem-error": "Reward redemption failed.",
+  "reward-not-found": "Reward was not found.",
+  "not-enough-points": "You do not have enough points for this reward.",
+  "out-of-stock": "This reward is out of stock.",
   "store-not-found": "Store phone number was not found.",
   duplicate: "This QR/barcode already exists in the same tier.",
   "not-approved": "This store is not approved yet, so scans are blocked.",
@@ -19,7 +26,7 @@ const messages: Record<string, string> = {
 export function MessageBanner({ message }: { message?: string }) {
   if (!message || !messages[message]) return null;
 
-  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved";
+  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "redeem-success";
 
   return (
     <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${
