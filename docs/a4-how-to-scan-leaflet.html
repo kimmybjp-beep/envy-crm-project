@@ -273,6 +273,58 @@
       font-weight: 700;
     }
 
+    .register-cta {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8mm;
+      align-items: center;
+      margin-top: 7mm;
+      border-radius: 8mm;
+      padding: 7mm;
+      background: linear-gradient(135deg, var(--deep), var(--ruby));
+      color: #fff;
+      box-shadow: 0 14px 38px rgba(101,0,19,.16);
+    }
+
+    .register-cta small {
+      display: block;
+      color: var(--gold);
+      font-size: 11px;
+      font-weight: 950;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    .register-cta h2 {
+      margin: 2mm 0 0;
+      font-size: 25px;
+      line-height: 1.12;
+      font-weight: 950;
+    }
+
+    .register-cta p {
+      margin: 2mm 0 0;
+      color: rgba(255,255,255,.82);
+      font-size: 13px;
+      line-height: 1.42;
+      font-weight: 700;
+    }
+
+    .register-qr {
+      width: 35mm;
+      height: 35mm;
+      border-radius: 5mm;
+      padding: 3mm;
+      background: #fff;
+      box-shadow: 0 10px 30px rgba(0,0,0,.18);
+    }
+
+    .register-qr img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+
     @media print {
       body { background: #fff; }
       .sheet { margin: 0; box-shadow: none; }
@@ -353,6 +405,20 @@
         <div class="tip">
           <b>ร้านต้อง Approved ก่อน</b>
           <p>ถ้ายังรออนุมัติ จะยัง Login และ Scan เพื่อสะสมแต้มไม่ได้</p>
+        </div>
+      </section>
+
+      <section class="register-cta">
+        <div>
+          <small>Quick access</small>
+          <h2>สแกนที่นี่เพื่อลงทะเบียนร้าน</h2>
+          <p>สำหรับร้านค้าใหม่ เปิดกล้องมือถือสแกน QR นี้ แล้วกรอกข้อมูลเพื่อรอ Back Office อนุมัติ</p>
+        </div>
+        <div class="register-qr">
+          <img
+            alt="Register QR code"
+            src="https://api.qrserver.com/v1/create-qr-code/?size=420x420&margin=12&data=https%3A%2F%2Fenvy-crm-project.vercel.app%2Fregister"
+          />
         </div>
       </section>
 
