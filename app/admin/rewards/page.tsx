@@ -1,5 +1,5 @@
 import { Gift } from "lucide-react";
-import { createRewardAction, updateRewardAction } from "@/app/actions/rewards";
+import { createRewardAction, updateRedemptionStatusAction, updateRewardAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseClient } from "@/lib/supabase";
@@ -14,10 +14,13 @@ export default async function AdminRewardsPage({
 }) {
   const { message } = await searchParams;
   const supabase = getSupabaseClient();
-  const [{ data: rewards }, { data: redemptions }] = await Promise.all([
+  const [{ data: rewards }, { data: redemptions }, { data: stores }] = await Promise.all([
     supabase.from("rewards").select("*").order("created_at", { ascending: false }).returns<Reward[]>(),
-    supabase.from("reward_redemptions").select("*").order("created_at", { ascending: false }).limit(20).returns<RewardRedemption[]>()
+    supabase.from("reward_redemptions").select("*").order("created_at", { ascending: false }).limit(30).returns<RewardRedemption[]>(),
+    supabase.from("stores").select("id,name,phone,tier").returns<{ id: string; name: string; phone: string; tier: string }[]>()
   ]);
+  const rewardMap = new Map((rewards ?? []).map((reward) => [reward.id, reward]));
+  const storeMap = new Map((stores ?? []).map((store) => [store.id, store]));
 
   return (
     <AdminShell title="Reward Management" subtitle="Create reward catalog and review redemption requests">
@@ -46,14 +49,32 @@ export default async function AdminRewardsPage({
         </section>
 
         <section style={{ ...adminUi.panel, padding: 24 }}>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950 }}>Recent Redemptions</h2>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950 }}>Redemption Fulfillment</h2>
           <div style={{ marginTop: 14, display: "grid", gap: 10 }}>
-            {(redemptions ?? []).length ? redemptions?.map((item) => (
+            {(redemptions ?? []).length ? redemptions?.map((item) => {
+              const reward = rewardMap.get(item.reward_id);
+              const store = storeMap.get(item.store_id);
+
+              return (
               <div key={item.id} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 14, padding: 12 }}>
-                <p style={{ margin: 0, fontWeight: 900 }}>{item.points_spent} points</p>
-                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>{item.status} - {new Date(item.created_at).toLocaleString()}</p>
+                <p style={{ margin: 0, fontWeight: 950 }}>{reward?.name ?? "Reward"}</p>
+                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.68)", fontSize: 13 }}>
+                  {store?.name ?? "Store"} {store ? `- ${store.tier}` : ""} - {item.points_spent} points
+                </p>
+                <p style={{ margin: "4px 0 10px", color: "rgba(21,19,19,.58)", fontSize: 12 }}>{new Date(item.created_at).toLocaleString()}</p>
+                <form action={updateRedemptionStatusAction} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                  <input type="hidden" name="redemptionId" value={item.id} />
+                  <select name="status" defaultValue={item.status} style={{ ...adminUi.input, padding: "9px 10px", fontSize: 13 }}>
+                    <option value="PENDING">PENDING</option>
+                    <option value="PROCESSING">PROCESSING</option>
+                    <option value="SHIPPED">SHIPPED</option>
+                    <option value="CANCELLED">CANCELLED</option>
+                  </select>
+                  <button style={{ ...adminUi.button, padding: "9px 12px", fontSize: 12 }}>Update</button>
+                </form>
               </div>
-            )) : <p style={{ color: "rgba(21,19,19,.58)" }}>No redemptions yet.</p>}
+              );
+            }) : <p style={{ color: "rgba(21,19,19,.58)" }}>No redemptions yet.</p>}
           </div>
         </section>
       </div>

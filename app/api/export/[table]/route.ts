@@ -30,7 +30,7 @@ export async function GET(
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
-  const csv = toCsv(data ?? []);
+  const csv = toCsv((data ?? []).map(stripSensitiveFields));
 
   return new Response(csv, {
     headers: {
@@ -50,6 +50,13 @@ function toCsv(rows: Record<string, unknown>[]) {
   ];
 
   return `\ufeff${lines.join("\n")}`;
+}
+
+function stripSensitiveFields(row: Record<string, unknown>) {
+  const safeRow = { ...row };
+  delete safeRow.password_hash;
+  delete safeRow.password_salt;
+  return safeRow;
 }
 
 function csvCell(value: unknown) {

@@ -51,6 +51,14 @@ export default async function RegisterPage({
                 </select>
               </PremiumInput>
             </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <PremiumInput label="Password">
+                <input name="password" type="password" required minLength={8} placeholder="At least 8 characters" className="field-control" />
+              </PremiumInput>
+              <PremiumInput label="Confirm Password">
+                <input name="confirmPassword" type="password" required minLength={8} placeholder="Type password again" className="field-control" />
+              </PremiumInput>
+            </div>
             <div className="rounded-lg border border-dashed border-ruby-900/25 bg-ruby-50/40 p-5">
               <div className="flex items-start gap-3">
                 <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ruby-900 text-champagne">

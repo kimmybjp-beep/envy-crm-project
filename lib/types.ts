@@ -7,6 +7,8 @@ export type Store = {
   name: string;
   owner_name: string;
   phone: string;
+  password_hash?: string | null;
+  password_salt?: string | null;
   latitude: number | null;
   longitude: number | null;
   image_url: string | null;

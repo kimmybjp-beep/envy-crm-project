@@ -14,6 +14,9 @@ const messages: Record<string, string> = {
   "reward-not-found": "Reward was not found.",
   "not-enough-points": "You do not have enough points for this reward.",
   "out-of-stock": "This reward is out of stock.",
+  "redemption-error": "Reward redemption status could not be updated.",
+  "redemption-updated": "Reward redemption status updated.",
+  "password-required": "This store account has no password yet. Please register again or contact Back Office.",
   "store-not-found": "Store phone number was not found.",
   duplicate: "This QR/barcode already exists in the same tier.",
   "not-approved": "This store is not approved yet, so scans are blocked.",
@@ -26,7 +29,7 @@ const messages: Record<string, string> = {
 export function MessageBanner({ message }: { message?: string }) {
   if (!message || !messages[message]) return null;
 
-  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "redeem-success";
+  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "redeem-success" || message === "redemption-updated";
 
   return (
     <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${

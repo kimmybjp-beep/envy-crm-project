@@ -3,10 +3,12 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { verifyPassword } from "@/lib/password";
 import { getSupabaseClient } from "@/lib/supabase";
 
 const loginSchema = z.object({
-  phone: z.string().min(7)
+  phone: z.string().min(7),
+  password: z.string().min(8)
 });
 
 const adminLoginSchema = z.object({
@@ -15,7 +17,8 @@ const adminLoginSchema = z.object({
 
 export async function storeLoginAction(formData: FormData) {
   const parsed = loginSchema.safeParse({
-    phone: formData.get("phone")
+    phone: formData.get("phone"),
+    password: formData.get("password")
   });
 
   if (!parsed.success) redirect("/login?message=invalid");
@@ -23,13 +26,17 @@ export async function storeLoginAction(formData: FormData) {
   const supabase = getSupabaseClient();
   const { data: store, error } = await supabase
     .from("stores")
-    .select("id,status")
+    .select("id,status,password_hash,password_salt")
     .eq("phone", parsed.data.phone)
     .order("created_at", { ascending: false })
     .limit(1)
     .maybeSingle();
 
   if (error || !store) redirect("/login?message=store-not-found");
+  if (!store.password_hash || !store.password_salt) redirect("/login?message=password-required");
+  if (!verifyPassword(parsed.data.password, store.password_hash, store.password_salt)) {
+    redirect("/login?message=auth-error");
+  }
   if (store.status !== "APPROVED") redirect("/login?message=not-approved");
 
   const cookieStore = await cookies();

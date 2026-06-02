@@ -23,6 +23,9 @@ export default async function LoginPage({
           <PremiumInput label="Phone number">
             <input name="phone" required placeholder="08x-xxx-xxxx" className="field-control" />
           </PremiumInput>
+          <PremiumInput label="Password">
+            <input name="password" type="password" required minLength={8} placeholder="Store password" className="field-control" />
+          </PremiumInput>
           <LuxuryButton className="w-full py-4">Login</LuxuryButton>
         </form>
         <p className="mt-5 text-center text-sm text-charcoal/60">

@@ -3,14 +3,20 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
+import { hashPassword } from "@/lib/password";
 import { getSupabaseClient } from "@/lib/supabase";
 
 const storeSchema = z.object({
   name: z.string().min(2),
   ownerName: z.string().min(2),
   phone: z.string().min(7),
+  password: z.string().min(8),
+  confirmPassword: z.string().min(8),
   tier: z.enum(["DISTRIBUTOR", "TIER2", "TIER3"]),
   imageUrl: z.string().url().optional().or(z.literal(""))
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "Passwords must match",
+  path: ["confirmPassword"]
 });
 
 export async function createStoreAction(formData: FormData) {
@@ -18,6 +24,8 @@ export async function createStoreAction(formData: FormData) {
     name: formData.get("name"),
     ownerName: formData.get("ownerName"),
     phone: formData.get("phone"),
+    password: formData.get("password"),
+    confirmPassword: formData.get("confirmPassword"),
     tier: formData.get("tier"),
     imageUrl: formData.get("imageUrl") || ""
   });
@@ -25,10 +33,13 @@ export async function createStoreAction(formData: FormData) {
   if (!parsed.success) redirect("/register?message=invalid");
 
   const supabase = getSupabaseClient();
+  const { hash, salt } = hashPassword(parsed.data.password);
   const { error } = await supabase.from("stores").insert({
     name: parsed.data.name,
     owner_name: parsed.data.ownerName,
     phone: parsed.data.phone,
+    password_hash: hash,
+    password_salt: salt,
     tier: parsed.data.tier,
     image_url: parsed.data.imageUrl || null,
     status: "PENDING_APPROVAL"

@@ -72,6 +72,22 @@ export async function updateRewardAction(formData: FormData) {
   redirect("/admin/rewards?message=reward-saved");
 }
 
+export async function updateRedemptionStatusAction(formData: FormData) {
+  const redemptionId = z.string().uuid().parse(formData.get("redemptionId"));
+  const status = z.enum(["PENDING", "PROCESSING", "SHIPPED", "CANCELLED"]).parse(formData.get("status"));
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("reward_redemptions")
+    .update({ status })
+    .eq("id", redemptionId);
+
+  if (error) redirect("/admin/rewards?message=redemption-error");
+
+  revalidatePath("/admin/rewards");
+  redirect("/admin/rewards?message=redemption-updated");
+}
+
 export async function redeemRewardAction(formData: FormData) {
   const cookieStore = await cookies();
   const storeId = cookieStore.get("envy_store_id")?.value;

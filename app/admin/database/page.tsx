@@ -18,7 +18,7 @@ export default async function AdminDatabasePage() {
       return {
         table,
         count: count ?? 0,
-        rows: (data ?? []) as Record<string, unknown>[]
+        rows: ((data ?? []) as Record<string, unknown>[]).map(stripSensitiveFields)
       };
     })
   );
@@ -69,4 +69,11 @@ export default async function AdminDatabasePage() {
       </section>
     </AdminShell>
   );
+}
+
+function stripSensitiveFields(row: Record<string, unknown>) {
+  const safeRow = { ...row };
+  delete safeRow.password_hash;
+  delete safeRow.password_salt;
+  return safeRow;
 }
