@@ -1,8 +1,7 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
-import { ImageUp, ScanLine } from "lucide-react";
-import { registerScanAction } from "@/app/actions/scans";
+import { useMemo, useState } from "react";
+import { ImageUp, ScanLine, X } from "lucide-react";
 import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-panel";
 import type { Store } from "@/lib/types";
 
@@ -14,61 +13,113 @@ type BarcodeDetectorConstructor = new (options?: { formats?: string[] }) => {
   detect(source: ImageBitmapSource): Promise<DetectedBarcode[]>;
 };
 
+type ScanResult = {
+  code: string;
+  ok: boolean;
+  message: string;
+};
+
 declare global {
   interface Window {
     BarcodeDetector?: BarcodeDetectorConstructor;
   }
 }
 
-const initialState = {
-  ok: false,
-  message: ""
-};
-
 export function ScanSimulator({ stores }: { stores: Store[] }) {
-  const [state, formAction, isPending] = useActionState(registerScanAction, initialState);
   const [storeId, setStoreId] = useState(stores[0]?.id ?? "");
-  const [scannedCode, setScannedCode] = useState("");
-  const [imageScanMessage, setImageScanMessage] = useState("");
+  const [manualCode, setManualCode] = useState("");
+  const [codes, setCodes] = useState<string[]>([]);
+  const [statusMessage, setStatusMessage] = useState("");
+  const [results, setResults] = useState<ScanResult[]>([]);
+  const [isPending, setIsPending] = useState(false);
   const selectedStore = useMemo(
     () => stores.find((store) => store.id === storeId),
     [storeId, stores]
   );
 
-  function fillSimulatedCode() {
-    const code = `ENVY-${Math.floor(100000 + Math.random() * 900000)}`;
-    setScannedCode(code);
-    setImageScanMessage("Simulator code generated.");
+  function addManualCode() {
+    const normalizedCode = normalizeCode(manualCode);
+    if (!normalizedCode) return;
+    addCodes([normalizedCode]);
+    setManualCode("");
+    setStatusMessage("เพิ่ม QR code จากช่องกรอกเองแล้ว");
   }
 
-  async function decodeSavedImage(file: File) {
-    setImageScanMessage("Reading QR/barcode from selected image...");
+  async function decodeSavedImages(files: FileList | null) {
+    if (!files?.length) return;
 
     if (!window.BarcodeDetector) {
-      setImageScanMessage("This browser cannot read QR images automatically. Please type the code from the saved image.");
+      setStatusMessage("Browser นี้อ่าน QR จากรูปอัตโนมัติไม่ได้ กรุณากรอก code เองจากรูป");
       return;
     }
 
+    setStatusMessage(`กำลังอ่าน QR จากรูป ${files.length} ไฟล์...`);
+
+    const detector = new window.BarcodeDetector({
+      formats: ["qr_code", "ean_13", "code_128", "code_39", "upc_a"]
+    });
+    const detectedCodes: string[] = [];
+    let failedCount = 0;
+
+    for (const file of Array.from(files)) {
+      try {
+        const bitmap = await createImageBitmap(file);
+        const detected = await detector.detect(bitmap);
+        bitmap.close();
+        const code = normalizeCode(detected[0]?.rawValue ?? "");
+
+        if (code) {
+          detectedCodes.push(code);
+        } else {
+          failedCount += 1;
+        }
+      } catch {
+        failedCount += 1;
+      }
+    }
+
+    addCodes(detectedCodes);
+    setStatusMessage(`อ่านได้ ${detectedCodes.length} รูป${failedCount ? `, อ่านไม่ได้ ${failedCount} รูป` : ""}`);
+  }
+
+  async function saveAllScans() {
+    if (!storeId || codes.length === 0) return;
+
+    setIsPending(true);
+    setStatusMessage("กำลังบันทึก QR ทั้งหมด...");
+    setResults([]);
+
     try {
-      const bitmap = await createImageBitmap(file);
-      const detector = new window.BarcodeDetector({
-        formats: ["qr_code", "ean_13", "code_128", "code_39", "upc_a"]
+      const response = await fetch("/api/scans/batch", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ storeId, codes })
       });
-      const results = await detector.detect(bitmap);
-      bitmap.close();
+      const payload = await response.json() as {
+        ok: boolean;
+        saved?: number;
+        failed?: number;
+        message?: string;
+        results?: ScanResult[];
+      };
 
-      const detectedCode = results[0]?.rawValue;
-
-      if (!detectedCode) {
-        setImageScanMessage("No QR/barcode found in this image. Try a clearer photo or type the code manually.");
+      if (!payload.ok) {
+        setStatusMessage(payload.message ?? "บันทึกไม่สำเร็จ");
         return;
       }
 
-      setScannedCode(detectedCode.trim().toUpperCase());
-      setImageScanMessage("Code loaded from saved image.");
-    } catch {
-      setImageScanMessage("Could not read this image. Try another photo or enter the code manually.");
+      setResults(payload.results ?? []);
+      setStatusMessage(`บันทึกสำเร็จ ${payload.saved ?? 0} รายการ, ไม่สำเร็จ ${payload.failed ?? 0} รายการ`);
+      setCodes((payload.results ?? []).filter((result) => !result.ok).map((result) => result.code));
+    } catch (error) {
+      setStatusMessage(`เกิด error: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setIsPending(false);
     }
+  }
+
+  function addCodes(nextCodes: string[]) {
+    setCodes((currentCodes) => Array.from(new Set([...currentCodes, ...nextCodes.map(normalizeCode).filter(Boolean)])));
   }
 
   return (
@@ -76,23 +127,12 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
       <div className="mb-6 rounded-lg bg-charcoal p-5 text-white">
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-champagne">Mobile Scanner</p>
         <h2 className="mt-2 text-2xl font-semibold">Apple ENVY QR / Barcode</h2>
-        <p className="mt-2 text-sm text-white/65">Upload a saved QR image from the phone gallery, or enter the code manually.</p>
+        <p className="mt-2 text-sm text-white/65">เลือกรูป QR ได้หลายรูปจากเครื่อง หรือกรอก code เองถ้ารูปอ่านไม่ได้</p>
       </div>
 
-      {state.message ? (
-        <div className={`mb-5 rounded-lg border px-4 py-3 text-sm font-semibold ${
-          state.ok
-            ? "border-emerald-200 bg-emerald-50 text-emerald-800"
-            : "border-ruby-900/15 bg-ruby-50 text-ruby-900"
-        }`}>
-          {state.message}
-        </div>
-      ) : null}
-
-      <form action={formAction} className="space-y-4">
+      <div className="space-y-4">
         <PremiumInput label="Approved Store">
           <select
-            name="storeId"
             required
             value={storeId}
             onChange={(event) => setStoreId(event.target.value)}
@@ -113,48 +153,89 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
         <div className="rounded-lg border border-dashed border-ruby-900/25 bg-ruby-50/40 p-4">
           <div className="mb-3 flex items-center gap-2 font-semibold text-charcoal">
             <ImageUp size={18} className="text-ruby-900" />
-            Saved QR image
+            เลือกรูป QR จากเครื่อง
           </div>
           <input
             type="file"
             accept="image/*"
+            multiple
             onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (file) void decodeSavedImage(file);
+              void decodeSavedImages(event.target.files);
+              event.currentTarget.value = "";
             }}
             className="w-full rounded-lg border border-ruby-900/15 bg-white px-4 py-3 text-sm"
           />
           <p className="mt-2 text-xs text-charcoal/60">
-            Choose an image already saved on the phone. Live camera is not required.
+            เลือกได้หลายรูปพร้อมกัน ไม่ต้องใช้ live camera
           </p>
-          {imageScanMessage ? <p className="mt-2 text-sm font-medium text-ruby-900">{imageScanMessage}</p> : null}
         </div>
-        <PremiumInput label="Scanned Code">
-          <input
-            name="scannedCode"
-            required
-            value={scannedCode}
-            onChange={(event) => setScannedCode(event.target.value)}
-            placeholder="ENVY-123456"
-            className="field-control font-mono text-lg uppercase tracking-wide"
-          />
-        </PremiumInput>
+
+        <div className="grid gap-3 sm:grid-cols-[1fr_auto]">
+          <PremiumInput label="QR Code ที่อ่านได้ / กรอกเอง">
+            <input
+              value={manualCode}
+              onChange={(event) => setManualCode(event.target.value)}
+              placeholder="เช่น 839201746502918374"
+              className="field-control font-mono text-lg uppercase tracking-wide"
+            />
+          </PremiumInput>
+          <LuxuryButton type="button" onClick={addManualCode} className="self-end" variant="outline">
+            เพิ่ม code
+          </LuxuryButton>
+        </div>
+
+        {statusMessage ? <p className="rounded-lg bg-ruby-50 px-4 py-3 text-sm font-semibold text-ruby-900">{statusMessage}</p> : null}
+
+        <div className="rounded-lg border border-ruby-900/10 bg-white p-4">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <p className="font-semibold text-charcoal">QR ที่รอบันทึก ({codes.length})</p>
+            {codes.length ? (
+              <button type="button" onClick={() => setCodes([])} className="text-sm font-semibold text-ruby-900">ล้างทั้งหมด</button>
+            ) : null}
+          </div>
+          {codes.length ? (
+            <div className="grid gap-2">
+              {codes.map((code) => (
+                <div key={code} className="flex items-center justify-between gap-3 rounded-lg bg-ruby-50 px-3 py-2 font-mono text-sm text-charcoal">
+                  <span>{code}</span>
+                  <button type="button" onClick={() => setCodes((currentCodes) => currentCodes.filter((item) => item !== code))} className="text-ruby-900">
+                    <X size={16} />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-charcoal/60">ยังไม่มี QR code ในรายการ</p>
+          )}
+        </div>
+
         <LuxuryButton
           type="button"
-          onClick={fillSimulatedCode}
-          className="w-full"
-          variant="outline"
-        >
-          Generate Simulator Code
-        </LuxuryButton>
-        <LuxuryButton
-          disabled={isPending || stores.length === 0}
+          onClick={() => void saveAllScans()}
+          disabled={isPending || stores.length === 0 || codes.length === 0}
           className="flex w-full items-center justify-center gap-3 px-6 py-5 text-lg"
         >
           <ScanLine size={26} />
-          {isPending ? "Saving..." : "SCAN"}
+          {isPending ? "Saving..." : `บันทึก QR ทั้งหมด (${codes.length})`}
         </LuxuryButton>
-      </form>
+
+        {results.length ? (
+          <div className="rounded-lg border border-ruby-900/10 bg-white p-4">
+            <p className="mb-3 font-semibold text-charcoal">ผลการบันทึก</p>
+            <div className="grid gap-2">
+              {results.map((result) => (
+                <div key={result.code} className={`rounded-lg px-3 py-2 text-sm ${result.ok ? "bg-emerald-50 text-emerald-800" : "bg-ruby-50 text-ruby-900"}`}>
+                  <span className="font-mono">{result.code}</span> - {result.message}
+                </div>
+              ))}
+            </div>
+          </div>
+        ) : null}
+      </div>
     </PremiumPanel>
   );
+}
+
+function normalizeCode(code: string) {
+  return code.trim().toUpperCase();
 }
