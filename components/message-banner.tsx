@@ -1,0 +1,33 @@
+const messages: Record<string, string> = {
+  invalid: "Some required information is missing or invalid.",
+  "auth-error": "Authentication failed. Check your credentials and try again.",
+  "admin-error": "Admin password is incorrect.",
+  "photo-error": "Storefront photo upload failed.",
+  "create-error": "Store onboarding could not be submitted.",
+  "review-error": "Store review could not be saved.",
+  "message-error": "Admin message could not be published.",
+  "message-saved": "Admin message published.",
+  "store-not-found": "Store phone number was not found.",
+  duplicate: "This QR/barcode already exists in the same tier.",
+  "not-approved": "This store is not approved yet, so scans are blocked.",
+  "scan-error": "Scan could not be registered.",
+  success: "Scan registered successfully.",
+  "store-submitted": "Store submitted for approval.",
+  "review-saved": "Store status updated."
+};
+
+export function MessageBanner({ message }: { message?: string }) {
+  if (!message || !messages[message]) return null;
+
+  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved";
+
+  return (
+    <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${
+      isSuccess
+        ? "border-emerald-200 bg-emerald-50 text-emerald-800"
+        : "border-ruby-900/15 bg-ruby-50 text-ruby-900"
+    }`}>
+      {messages[message]}
+    </div>
+  );
+}
