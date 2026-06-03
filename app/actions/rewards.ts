@@ -72,9 +72,26 @@ export async function updateRewardAction(formData: FormData) {
   redirect("/admin/rewards?message=reward-saved");
 }
 
+export async function deleteRewardAction(formData: FormData) {
+  const rewardId = z.string().uuid().parse(formData.get("rewardId"));
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("rewards")
+    .update({ is_active: false, stock: 0 })
+    .eq("id", rewardId);
+
+  if (error) redirect("/admin/rewards?message=reward-delete-error");
+
+  revalidatePath("/admin/rewards");
+  revalidatePath("/rewards");
+  redirect("/admin/rewards?message=reward-deleted");
+}
+
 export async function updateRedemptionStatusAction(formData: FormData) {
   const redemptionId = z.string().uuid().parse(formData.get("redemptionId"));
-  const status = z.enum(["PENDING", "PROCESSING", "SHIPPED", "CANCELLED"]).parse(formData.get("status"));
+  const status = z.enum(["PENDING", "PROCESSING", "PAID", "SHIPPED", "CANCELLED"]).parse(formData.get("status"));
+  const returnTo = z.enum(["dashboard", "rewards"]).default("rewards").parse(formData.get("returnTo") || "rewards");
   const supabase = getSupabaseClient();
 
   const { error } = await supabase
@@ -85,7 +102,8 @@ export async function updateRedemptionStatusAction(formData: FormData) {
   if (error) redirect("/admin/rewards?message=redemption-error");
 
   revalidatePath("/admin/rewards");
-  redirect("/admin/rewards?message=redemption-updated");
+  revalidatePath("/admin/dashboard");
+  redirect(`${returnTo === "dashboard" ? "/admin/dashboard" : "/admin/rewards"}?message=redemption-updated`);
 }
 
 export async function redeemRewardAction(formData: FormData) {

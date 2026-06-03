@@ -9,6 +9,9 @@ export type AdminSummary = {
   totalScans: number;
   todayScans: number;
   pendingRedemptions: number;
+  pendingRedemptionStores: number;
+  paidRedemptions: number;
+  paidRedemptionStores: number;
   qrBatches: number;
   topStores: Array<{
     name: string;
@@ -32,11 +35,14 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     supabase.from("stores").select("*").returns<Store[]>(),
     supabase.from("scans").select("*").returns<Scan[]>(),
     supabase.from("scans").select("*").gte("scanned_at", startOfDay.toISOString()).returns<Scan[]>(),
-    supabase.from("reward_redemptions").select("*").eq("status", "PENDING").returns<RewardRedemption[]>(),
+    supabase.from("reward_redemptions").select("*").returns<RewardRedemption[]>(),
     supabase.from("qr_batches").select("*").returns<QrBatch[]>()
   ]);
 
   const storeRows = stores ?? [];
+  const redemptionRows = redemptions ?? [];
+  const pendingRedemptions = redemptionRows.filter((item) => item.status === "PENDING" || item.status === "PROCESSING");
+  const paidRedemptions = redemptionRows.filter((item) => item.status === "PAID" || item.status === "SHIPPED");
 
   return {
     generatedAt: new Date().toISOString(),
@@ -45,7 +51,10 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     pendingStores: storeRows.filter((store) => store.status === "PENDING_APPROVAL").length,
     totalScans: (scans ?? []).length,
     todayScans: (todayScans ?? []).length,
-    pendingRedemptions: (redemptions ?? []).length,
+    pendingRedemptions: pendingRedemptions.length,
+    pendingRedemptionStores: new Set(pendingRedemptions.map((item) => item.store_id)).size,
+    paidRedemptions: paidRedemptions.length,
+    paidRedemptionStores: new Set(paidRedemptions.map((item) => item.store_id)).size,
     qrBatches: (qrBatches ?? []).length,
     topStores: [...storeRows]
       .sort((a, b) => b.points - a.points)
@@ -72,7 +81,8 @@ export function formatFallbackSummary(summary: AdminSummary) {
     `Pending approval: ${summary.pendingStores}`,
     `Scans today: ${summary.todayScans}`,
     `Total scans: ${summary.totalScans}`,
-    `Pending rewards: ${summary.pendingRedemptions}`,
+    `Pending reward payments: ${summary.pendingRedemptions} redemptions / ${summary.pendingRedemptionStores} stores`,
+    `Paid rewards: ${summary.paidRedemptions} redemptions / ${summary.paidRedemptionStores} stores`,
     `QR batches: ${summary.qrBatches}`,
     "",
     "Top stores:",

@@ -9,6 +9,8 @@ const messages: Record<string, string> = {
   "message-saved": "Admin message published.",
   "reward-error": "Reward could not be saved.",
   "reward-saved": "Reward saved.",
+  "reward-deleted": "Reward removed from active catalog.",
+  "reward-delete-error": "Reward could not be removed.",
   "redeem-success": "Reward redemption submitted.",
   "redeem-error": "Reward redemption failed.",
   "reward-not-found": "Reward was not found.",
@@ -33,7 +35,7 @@ const messages: Record<string, string> = {
 export function MessageBanner({ message }: { message?: string }) {
   if (!message || !messages[message]) return null;
 
-  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "line-summary-sent";
+  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "reward-deleted" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "line-summary-sent";
 
   return (
     <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${

@@ -1,5 +1,5 @@
 import { Gift } from "lucide-react";
-import { createRewardAction, updateRedemptionStatusAction, updateRewardAction } from "@/app/actions/rewards";
+import { createRewardAction, deleteRewardAction, updateRedemptionStatusAction, updateRewardAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseClient } from "@/lib/supabase";
@@ -67,6 +67,7 @@ export default async function AdminRewardsPage({
                   <select name="status" defaultValue={item.status} style={{ ...adminUi.input, padding: "9px 10px", fontSize: 13 }}>
                     <option value="PENDING">PENDING</option>
                     <option value="PROCESSING">PROCESSING</option>
+                    <option value="PAID">PAID</option>
                     <option value="SHIPPED">SHIPPED</option>
                     <option value="CANCELLED">CANCELLED</option>
                   </select>
@@ -82,29 +83,35 @@ export default async function AdminRewardsPage({
       <section style={{ ...adminUi.panel, marginTop: 18, overflow: "hidden" }}>
         <div style={{ padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)", fontWeight: 950 }}>Reward Catalog - edit here</div>
         {(rewards ?? []).length ? rewards?.map((reward) => (
-          <form key={reward.id} action={updateRewardAction} style={{ display: "grid", gridTemplateColumns: "1.4fr 2fr 120px 100px 100px auto", gap: 10, alignItems: "end", padding: 16, borderBottom: "1px solid rgba(101,0,19,.08)" }}>
-            <input type="hidden" name="rewardId" value={reward.id} />
-            <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
-              Name
-              <input name="name" defaultValue={reward.name} required style={{ ...adminUi.input, marginTop: 6 }} />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
-              Description
-              <input name="description" defaultValue={reward.description ?? ""} style={{ ...adminUi.input, marginTop: 6 }} />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
-              Points
-              <input name="pointsRequired" type="number" min={1} defaultValue={reward.points_required} required style={{ ...adminUi.input, marginTop: 6 }} />
-            </label>
-            <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
-              Stock
-              <input name="stock" type="number" min={0} defaultValue={reward.stock} required style={{ ...adminUi.input, marginTop: 6 }} />
-            </label>
-            <label style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 13, fontWeight: 900 }}>
-              <input name="isActive" type="checkbox" defaultChecked={reward.is_active} /> Active
-            </label>
-            <button style={{ ...adminUi.button, padding: "12px 15px" }}>Update</button>
-          </form>
+          <div key={reward.id} style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) auto", gap: 10, alignItems: "end", padding: 16, borderBottom: "1px solid rgba(101,0,19,.08)" }}>
+            <form action={updateRewardAction} style={{ display: "grid", gridTemplateColumns: "1.4fr 2fr 120px 100px 100px auto", gap: 10, alignItems: "end" }}>
+              <input type="hidden" name="rewardId" value={reward.id} />
+              <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
+                Name
+                <input name="name" defaultValue={reward.name} required style={{ ...adminUi.input, marginTop: 6 }} />
+              </label>
+              <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
+                Description
+                <input name="description" defaultValue={reward.description ?? ""} style={{ ...adminUi.input, marginTop: 6 }} />
+              </label>
+              <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
+                Points
+                <input name="pointsRequired" type="number" min={1} defaultValue={reward.points_required} required style={{ ...adminUi.input, marginTop: 6 }} />
+              </label>
+              <label style={{ fontSize: 12, fontWeight: 900, color: "rgba(21,19,19,.58)" }}>
+                Stock
+                <input name="stock" type="number" min={0} defaultValue={reward.stock} required style={{ ...adminUi.input, marginTop: 6 }} />
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: 8, paddingBottom: 13, fontWeight: 900 }}>
+                <input name="isActive" type="checkbox" defaultChecked={reward.is_active} /> Active
+              </label>
+              <button style={{ ...adminUi.button, padding: "12px 15px" }}>Update</button>
+            </form>
+            <form action={deleteRewardAction}>
+              <input type="hidden" name="rewardId" value={reward.id} />
+              <button style={{ ...adminUi.button, padding: "12px 15px", background: adminUi.charcoal }}>Remove</button>
+            </form>
+          </div>
         )) : <p style={{ padding: 22, color: "rgba(21,19,19,.58)" }}>No rewards yet.</p>}
       </section>
     </AdminShell>
