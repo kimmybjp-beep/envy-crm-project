@@ -67,3 +67,23 @@ export async function reviewStoreAction(formData: FormData) {
   revalidatePath("/scan");
   redirect("/admin?message=review-saved");
 }
+
+export async function resetStorePasswordAction(formData: FormData) {
+  const storeId = z.string().uuid().parse(formData.get("storeId"));
+  const password = z.string().min(8).parse(formData.get("password"));
+  const { hash, salt } = hashPassword(password);
+  const supabase = getSupabaseClient();
+
+  const { error } = await supabase
+    .from("stores")
+    .update({
+      password_hash: hash,
+      password_salt: salt
+    })
+    .eq("id", storeId);
+
+  if (error) redirect("/admin?message=password-reset-error");
+
+  revalidatePath("/admin");
+  redirect("/admin?message=password-reset");
+}

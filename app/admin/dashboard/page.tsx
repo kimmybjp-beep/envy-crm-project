@@ -1,5 +1,8 @@
 import Link from "next/link";
+import { Send } from "lucide-react";
+import { sendLineDailySummaryAction } from "@/app/actions/notifications";
 import { AdminShell, adminUi } from "@/components/admin-shell";
+import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { Scan, Store, StoreTier } from "@/lib/types";
 
@@ -7,7 +10,12 @@ export const dynamic = "force-dynamic";
 
 const tiers: StoreTier[] = ["DISTRIBUTOR", "TIER2", "TIER3"];
 
-export default async function AdminDashboardPage() {
+export default async function AdminDashboardPage({
+  searchParams
+}: {
+  searchParams: Promise<{ message?: string }>;
+}) {
+  const { message } = await searchParams;
   const supabase = getSupabaseClient();
   const [{ data: stores }, { data: scans }] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
@@ -20,6 +28,18 @@ export default async function AdminDashboardPage() {
 
   return (
     <AdminShell title="Interactive Dashboard" subtitle="Track store activity, points, and scans by tier">
+      <MessageBanner message={message} />
+      <section style={{ ...adminUi.panel, padding: 20, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
+        <div>
+          <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950, letterSpacing: 1.2, textTransform: "uppercase" }}>LINE Back Office Alert</p>
+          <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.58)" }}>Send the latest dashboard summary to LINE now. Daily cron will also run after LINE env is configured.</p>
+        </div>
+        <form action={sendLineDailySummaryAction}>
+          <button style={{ ...adminUi.button, display: "inline-flex", alignItems: "center", gap: 8 }}>
+            <Send size={16} /> Send LINE Summary
+          </button>
+        </form>
+      </section>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 16, marginBottom: 18 }}>
         <Metric label="Total Stores" value={storeRows.length} />
         <Metric label="Approved" value={storeRows.filter((store) => store.status === "APPROVED").length} />

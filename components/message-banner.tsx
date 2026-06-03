@@ -17,6 +17,10 @@ const messages: Record<string, string> = {
   "redemption-error": "Reward redemption status could not be updated.",
   "redemption-updated": "Reward redemption status updated.",
   "password-required": "This store account has no password yet. Please register again or contact Back Office.",
+  "password-reset": "Store password has been reset.",
+  "password-reset-error": "Store password could not be reset.",
+  "line-summary-sent": "LINE dashboard summary sent.",
+  "line-summary-error": "LINE summary could not be sent. Check LINE environment variables in Vercel.",
   "store-not-found": "Store phone number was not found.",
   duplicate: "This QR/barcode already exists in the same tier.",
   "not-approved": "This store is not approved yet, so scans are blocked.",
@@ -29,7 +33,7 @@ const messages: Record<string, string> = {
 export function MessageBanner({ message }: { message?: string }) {
   if (!message || !messages[message]) return null;
 
-  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "redeem-success" || message === "redemption-updated";
+  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "line-summary-sent";
 
   return (
     <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${
