@@ -36,28 +36,49 @@ export async function POST(request: Request) {
     if (!event.replyToken || event.type !== "message" || event.message?.type !== "text") continue;
 
     const text = event.message.text?.trim().toLowerCase() ?? "";
+    const isGroupChat = event.source?.type === "group";
 
-    if (text.includes("groupid") || text.includes("group id")) {
+    if (isGroupIdCommand(text)) {
       const id = event.source?.groupId ?? event.source?.roomId ?? event.source?.userId ?? "unknown";
       await replyLineText(event.replyToken, `LINE_ADMIN_TO for this chat:\n${id}`);
       continue;
     }
 
-    if (text.includes("สรุป") || text.includes("summary") || text.includes("dashboard")) {
+    if (isSummaryCommand(text)) {
       const summary = await getAdminSummary();
       const summaryText = await summarizeWithGemini(summary);
       await replyLineText(event.replyToken, summaryText);
       continue;
     }
 
+    if (isGroupChat) {
+      continue;
+    }
+
     await replyLineText(event.replyToken, [
       "ENVY Reward CRM Bot",
       "Commands:",
-      "- สรุป",
       "- summary",
+      "- dashboard",
       "- groupid"
     ].join("\n"));
   }
 
   return NextResponse.json({ ok: true });
+}
+
+function isGroupIdCommand(text: string) {
+  return [
+    "groupid",
+    "group id",
+    "\u0e02\u0e2d\u0e23\u0e2b\u0e31\u0e2a\u0e01\u0e25\u0e38\u0e48\u0e21\u0e2b\u0e19\u0e48\u0e2d\u0e22"
+  ].includes(text);
+}
+
+function isSummaryCommand(text: string) {
+  return [
+    "\u0e2a\u0e23\u0e38\u0e1b",
+    "summary",
+    "dashboard"
+  ].includes(text);
 }
