@@ -34,7 +34,7 @@ export async function createRewardAction(formData: FormData) {
     is_active: parsed.data.isActive
   });
 
-  if (error) redirect("/admin/rewards?message=reward-error");
+  if (error) redirect(`/admin/rewards?message=${getRewardErrorMessage(error)}`);
 
   revalidatePath("/admin/rewards");
   revalidatePath("/rewards");
@@ -65,7 +65,7 @@ export async function updateRewardAction(formData: FormData) {
     })
     .eq("id", rewardId);
 
-  if (error) redirect("/admin/rewards?message=reward-error");
+  if (error) redirect(`/admin/rewards?message=${getRewardErrorMessage(error)}`);
 
   revalidatePath("/admin/rewards");
   revalidatePath("/rewards");
@@ -81,7 +81,7 @@ export async function deleteRewardAction(formData: FormData) {
     .update({ is_active: false, stock: 0 })
     .eq("id", rewardId);
 
-  if (error) redirect("/admin/rewards?message=reward-delete-error");
+  if (error) redirect(`/admin/rewards?message=${getRewardErrorMessage(error, "reward-delete-error")}`);
 
   revalidatePath("/admin/rewards");
   revalidatePath("/rewards");
@@ -141,4 +141,12 @@ export async function redeemRewardAction(formData: FormData) {
   revalidatePath("/rewards");
   revalidatePath("/admin/rewards");
   redirect("/rewards?message=redeem-success");
+}
+
+function getRewardErrorMessage(error: { code?: string; message?: string }, fallback = "reward-error") {
+  if (error.code === "PGRST205" || error.code === "42P01" || error.message?.includes("Could not find the table")) {
+    return "reward-table-missing";
+  }
+
+  return fallback;
 }

@@ -8,6 +8,7 @@ const messages: Record<string, string> = {
   "message-error": "Admin message could not be published.",
   "message-saved": "Admin message published.",
   "reward-error": "Reward could not be saved.",
+  "reward-table-missing": "Rewards database table is missing. Run supabase-rewards-dashboard-fix.sql in Supabase SQL Editor first.",
   "reward-saved": "Reward saved.",
   "reward-deleted": "Reward removed from active catalog.",
   "reward-delete-error": "Reward could not be removed.",
