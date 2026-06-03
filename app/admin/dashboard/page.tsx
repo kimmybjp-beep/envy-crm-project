@@ -29,9 +29,7 @@ export default async function AdminDashboardPage({
   const scanRows = scans ?? [];
   const redemptionRows = redemptions ?? [];
   const pendingRedemptions = redemptionRows.filter((item) => item.status === "PENDING" || item.status === "PROCESSING");
-  const paidRedemptions = redemptionRows.filter((item) => item.status === "PAID" || item.status === "SHIPPED");
-  const pendingRedemptionStores = new Set(pendingRedemptions.map((item) => item.store_id)).size;
-  const paidRedemptionStores = new Set(paidRedemptions.map((item) => item.store_id)).size;
+  const successfulRedemptions = redemptionRows.filter((item) => item.status === "PAID" || item.status === "SHIPPED");
   const storesById = new Map(storeRows.map((store) => [store.id, store]));
   const rewardsById = new Map((rewards ?? []).map((reward) => [reward.id, reward]));
 
@@ -55,8 +53,9 @@ export default async function AdminDashboardPage({
         <Metric label="Pending" value={storeRows.filter((store) => store.status === "PENDING_APPROVAL").length} />
         <Metric label="Total Scans" value={scanRows.length} />
         <Metric label="Total Points" value={storeRows.reduce((sum, store) => sum + store.points, 0)} />
-        <Metric label="Reward Pending Stores" value={pendingRedemptionStores} />
-        <Metric label="Reward Paid Stores" value={paidRedemptionStores} />
+        <Metric label="Total Rewards Claimed" value={redemptionRows.length} tone="ruby" />
+        <Metric label="Pending Fulfillment" value={pendingRedemptions.length} tone="gold" />
+        <Metric label="Successful Fulfills" value={successfulRedemptions.length} tone="green" />
       </div>
 
       <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
@@ -140,11 +139,14 @@ export default async function AdminDashboardPage({
   );
 }
 
-function Metric({ label, value }: { label: string; value: number }) {
+function Metric({ label, value, tone = "ruby" }: { label: string; value: number; tone?: "ruby" | "gold" | "green" }) {
+  const color = tone === "green" ? "#047857" : tone === "gold" ? "#b98018" : adminUi.ruby;
+  const background = tone === "green" ? "linear-gradient(135deg, rgba(4,120,87,.08), rgba(255,255,255,.96))" : tone === "gold" ? "linear-gradient(135deg, rgba(217,183,111,.18), rgba(255,255,255,.96))" : "rgba(255,255,255,.96)";
+
   return (
-    <div style={{ ...adminUi.panel, padding: 20 }}>
+    <div style={{ ...adminUi.panel, padding: 20, background }}>
       <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontWeight: 800 }}>{label}</p>
-      <p style={{ margin: "8px 0 0", color: adminUi.ruby, fontSize: 38, fontWeight: 950 }}>{value}</p>
+      <p style={{ margin: "8px 0 0", color, fontSize: 38, fontWeight: 950 }}>{value}</p>
     </div>
   );
 }
