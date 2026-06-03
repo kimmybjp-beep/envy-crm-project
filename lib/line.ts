@@ -23,7 +23,7 @@ export async function pushLineText(text: string): Promise<LineSendResult> {
 
   return sendLineRequest("https://api.line.me/v2/bot/message/push", token, {
     to,
-    messages: [{ type: "text", text }] satisfies LineMessage[]
+    messages: [lineTextMessage(text)] satisfies LineMessage[]
   });
 }
 
@@ -39,8 +39,39 @@ export async function replyLineText(replyToken: string, text: string): Promise<L
 
   return sendLineRequest("https://api.line.me/v2/bot/message/reply", token, {
     replyToken,
-    messages: [{ type: "text", text }] satisfies LineMessage[]
+    messages: [lineTextMessage(text)] satisfies LineMessage[]
   });
+}
+
+export function lineTextMessage(text: string): LineMessage {
+  return {
+    type: "text",
+    text: appendOpenExternalBrowserToCrmLinks(text)
+  };
+}
+
+export function appendOpenExternalBrowserToCrmLinks(text: string) {
+  return text.replace(
+    /https:\/\/envy-crm-project\.vercel\.app[^\s)>\]]*/g,
+    (url) => appendOpenExternalBrowser(url)
+  );
+}
+
+export function appendOpenExternalBrowser(url: string) {
+  try {
+    const parsedUrl = new URL(url);
+
+    if (parsedUrl.hostname !== "envy-crm-project.vercel.app") return url;
+
+    parsedUrl.searchParams.set("openExternalBrowser", "1");
+    return parsedUrl.toString();
+  } catch {
+    const separator = url.includes("?") ? "&" : "?";
+
+    return url.includes("openExternalBrowser=")
+      ? url
+      : `${url}${separator}openExternalBrowser=1`;
+  }
 }
 
 export function verifyLineSignature(body: string, signature: string | null) {
