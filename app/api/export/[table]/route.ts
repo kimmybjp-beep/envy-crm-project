@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { getSupabaseClient } from "@/lib/supabase";
+import { cookies } from "next/headers";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 const allowedTables = new Set([
   "stores",
@@ -14,13 +15,20 @@ export async function GET(
   _request: Request,
   { params }: { params: Promise<{ table: string }> }
 ) {
+  const cookieStore = await cookies();
+  const isAdmin = cookieStore.get("envy_admin")?.value === "1";
+
+  if (!isAdmin) {
+    return NextResponse.json({ error: "Admin login is required" }, { status: 401 });
+  }
+
   const { table } = await params;
 
   if (!allowedTables.has(table)) {
     return NextResponse.json({ error: "Table is not exportable" }, { status: 400 });
   }
 
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const { data, error } = await supabase
     .from(table)
     .select("*")

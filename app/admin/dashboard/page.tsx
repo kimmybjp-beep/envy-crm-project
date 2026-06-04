@@ -4,7 +4,7 @@ import { sendLineDailySummaryAction } from "@/app/actions/notifications";
 import { updateRedemptionStatusAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { MessageBanner } from "@/components/message-banner";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { Reward, RewardRedemption, Scan, Store, StoreTier } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -17,7 +17,7 @@ export default async function AdminDashboardPage({
   searchParams: Promise<{ message?: string }>;
 }) {
   const { message } = await searchParams;
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
     supabase.from("scans").select("*").order("scanned_at", { ascending: false }).returns<Scan[]>(),

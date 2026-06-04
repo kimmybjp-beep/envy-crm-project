@@ -11,7 +11,7 @@ export function getSupabaseClient() {
   return createClient(supabaseUrl, supabaseAnonKey);
 }
 
-function normalizeSupabaseUrl(value: string | undefined) {
+export function normalizeSupabaseUrl(value: string | undefined) {
   if (!value) return "";
 
   return value

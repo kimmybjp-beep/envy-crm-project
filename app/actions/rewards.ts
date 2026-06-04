@@ -4,7 +4,7 @@ import { cookies } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 const rewardSchema = z.object({
   name: z.string().min(2),
@@ -25,7 +25,7 @@ export async function createRewardAction(formData: FormData) {
 
   if (!parsed.success) redirect("/admin/rewards?message=invalid");
 
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const { error } = await supabase.from("rewards").insert({
     name: parsed.data.name,
     description: parsed.data.description || null,
@@ -53,7 +53,7 @@ export async function updateRewardAction(formData: FormData) {
 
   if (!parsed.success) redirect("/admin/rewards?message=invalid");
 
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const { error } = await supabase
     .from("rewards")
     .update({
@@ -74,7 +74,7 @@ export async function updateRewardAction(formData: FormData) {
 
 export async function deleteRewardAction(formData: FormData) {
   const rewardId = z.string().uuid().parse(formData.get("rewardId"));
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { error } = await supabase
     .from("rewards")
@@ -92,7 +92,7 @@ export async function updateRedemptionStatusAction(formData: FormData) {
   const redemptionId = z.string().uuid().parse(formData.get("redemptionId"));
   const status = z.enum(["PENDING", "PROCESSING", "PAID", "SHIPPED", "CANCELLED"]).parse(formData.get("status"));
   const returnTo = z.enum(["dashboard", "rewards"]).default("rewards").parse(formData.get("returnTo") || "rewards");
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { error } = await supabase
     .from("reward_redemptions")
@@ -113,7 +113,7 @@ export async function redeemRewardAction(formData: FormData) {
   if (!storeId) redirect("/login");
 
   const rewardId = z.string().uuid().parse(formData.get("rewardId"));
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const [{ data: store }, { data: reward }] = await Promise.all([
     supabase.from("stores").select("id,points").eq("id", storeId).single(),
     supabase.from("rewards").select("*").eq("id", rewardId).eq("is_active", true).single()

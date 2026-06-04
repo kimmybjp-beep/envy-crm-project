@@ -2,7 +2,7 @@ import { Gift } from "lucide-react";
 import { createRewardAction, deleteRewardAction, updateRedemptionStatusAction, updateRewardAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { MessageBanner } from "@/components/message-banner";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { Reward, RewardRedemption } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,7 +13,7 @@ export default async function AdminRewardsPage({
   searchParams: Promise<{ message?: string }>;
 }) {
   const { message } = await searchParams;
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const [{ data: rewards }, { data: redemptions }, { data: stores }] = await Promise.all([
     supabase.from("rewards").select("*").order("created_at", { ascending: false }).returns<Reward[]>(),
     supabase.from("reward_redemptions").select("*").order("created_at", { ascending: false }).limit(30).returns<RewardRedemption[]>(),

@@ -1,4 +1,4 @@
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { QrBatch, RewardRedemption, Scan, Store } from "@/lib/types";
 
 export type AdminSummary = {
@@ -21,7 +21,7 @@ export type AdminSummary = {
 };
 
 export async function getAdminSummary(): Promise<AdminSummary> {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
 
