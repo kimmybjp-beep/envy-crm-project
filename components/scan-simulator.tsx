@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Camera, ImageUp, ScanLine, Square, X } from "lucide-react";
 import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-panel";
 import type { Store } from "@/lib/types";
@@ -47,10 +47,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
   const streamRef = useRef<MediaStream | null>(null);
   const scannerTimerRef = useRef<number | null>(null);
 
-  const selectedStore = useMemo(
-    () => stores.find((store) => store.id === storeId),
-    [storeId, stores]
-  );
   const canAutoDetect = typeof window !== "undefined" && Boolean(window.BarcodeDetector);
 
   useEffect(() => {
@@ -249,19 +245,11 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
           >
             {stores.map((store) => (
               <option key={store.id} value={store.id}>
-                {store.name} - {store.tier}
+                {store.name}
               </option>
             ))}
           </select>
         </PremiumInput>
-
-        {selectedStore ? (
-          <p className="rounded-lg bg-champagne/15 px-4 py-3 text-sm font-semibold text-ruby-900">
-            {selectedStore.tier_locked
-              ? `Locked tier: ${selectedStore.tier}`
-              : `Auto tier mode: current ${selectedStore.tier}`}
-          </p>
-        ) : null}
 
         <div className="rounded-lg border border-ruby-900/15 bg-white p-4">
           <div className="mb-3 flex items-center gap-2 font-semibold text-charcoal">

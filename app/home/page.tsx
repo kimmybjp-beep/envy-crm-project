@@ -39,7 +39,7 @@ export default async function HomePage() {
             <div>
               <p className="text-sm font-bold uppercase tracking-[0.18em] text-white/65">ชื่อร้าน</p>
               <h2 className="mt-2 text-4xl font-black">{store.name}</h2>
-              <p className="mt-2 text-white/70">{store.tier} - {store.phone}</p>
+              <p className="mt-2 text-white/70">{store.phone}</p>
             </div>
             <div className="rounded-3xl bg-white p-5 text-ruby-900 shadow-lg">
               <p className="flex items-center gap-2 text-sm font-black uppercase tracking-[0.14em]"><Star size={16} />แต้มสะสม</p>

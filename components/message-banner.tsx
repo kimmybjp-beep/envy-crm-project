@@ -27,7 +27,7 @@ const messages: Record<string, string> = {
   "line-summary-sent": "LINE dashboard summary sent.",
   "line-summary-error": "LINE summary could not be sent. Check LINE environment variables in Vercel.",
   "store-not-found": "Store phone number was not found.",
-  duplicate: "This QR/barcode already exists in the same tier.",
+  duplicate: "This QR/barcode was already scanned and cannot be saved again.",
   "not-approved": "This store is not approved yet, so scans are blocked.",
   "scan-error": "Scan could not be registered.",
   success: "Scan registered successfully.",

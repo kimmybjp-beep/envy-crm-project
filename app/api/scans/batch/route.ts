@@ -15,10 +15,10 @@ type RegisterScanResult = {
 };
 
 const scanMessages: Record<string, string> = {
-  DUPLICATE_SCAN_IN_TIER: "โค้ดนี้ถูกสแกนใน Tier ของคุณไปแล้ว!",
-  SAME_STORE_TIER2_DUPLICATE: "ระบบไม่อนุมัติ: QR นี้เคยถูกสแกนโดยร้านคุณใน Tier 2 แล้ว ระบบแจ้ง Admin ตรวจสอบแล้ว",
+  DUPLICATE_SCAN_IN_TIER: "โค้ดนี้ถูกสแกนไปแล้ว ระบบไม่สามารถบันทึกซ้ำได้",
+  SAME_STORE_TIER2_DUPLICATE: "ระบบไม่อนุมัติ: QR นี้เคยถูกสแกนโดยร้านคุณแล้ว ระบบแจ้ง Admin ตรวจสอบแล้ว",
   STORE_NOT_APPROVED: "ร้านยังไม่ได้รับอนุมัติ จึงยังสแกนไม่ได้",
-  LOCKED_WITH_UNASSIGNED_TIER: "ร้านนี้ถูกล็อก Tier เป็น UNASSIGNED กรุณาติดต่อ Back Office",
+  LOCKED_WITH_UNASSIGNED_TIER: "บัญชีร้านนี้ยังไม่พร้อมสแกน กรุณาติดต่อ Back Office",
   INVALID_SCAN_CODE: "โค้ด QR ไม่ถูกต้อง",
   STORE_REQUIRED: "ไม่พบข้อมูลร้าน",
   STORE_NOT_FOUND: "ไม่พบร้านในระบบ"
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
       results.push({
         code,
         ok: true,
-        message: `บันทึกสำเร็จ (${scanResult.tier_level ?? "AUTO"})`
+        message: "บันทึกสำเร็จ"
       });
     }
   }
