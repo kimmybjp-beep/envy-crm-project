@@ -3,6 +3,7 @@ import { Send } from "lucide-react";
 import { sendLineDailySummaryAction } from "@/app/actions/notifications";
 import { updateRedemptionStatusAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
+import { DashboardFilters, type DashboardPeriod, type DashboardTierFilter } from "@/components/dashboard-filters";
 import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { Reward, RewardRedemption, Scan, ScanAlert, Store, StoreTier } from "@/lib/types";
@@ -14,9 +15,12 @@ const tiers: StoreTier[] = ["UNASSIGNED", "DISTRIBUTOR", "TIER2", "TIER3"];
 export default async function AdminDashboardPage({
   searchParams
 }: {
-  searchParams: Promise<{ message?: string }>;
+  searchParams: Promise<{ message?: string; period?: string; tier?: string }>;
 }) {
-  const { message } = await searchParams;
+  const { message, period: rawPeriod, tier: rawTier } = await searchParams;
+  const selectedPeriod = normalizePeriod(rawPeriod);
+  const selectedTier = normalizeTier(rawTier);
+  const periodStart = getPeriodStart(selectedPeriod);
   const supabase = getSupabaseAdminClient();
   const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }, { data: scanAlerts }] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
@@ -29,15 +33,35 @@ export default async function AdminDashboardPage({
   const storeRows = stores ?? [];
   const scanRows = scans ?? [];
   const redemptionRows = redemptions ?? [];
-  const pendingRedemptions = redemptionRows.filter((item) => item.status === "PENDING" || item.status === "PROCESSING");
-  const successfulRedemptions = redemptionRows.filter((item) => item.status === "PAID" || item.status === "SHIPPED");
   const openAlerts = scanAlerts ?? [];
   const storesById = new Map(storeRows.map((store) => [store.id, store]));
   const rewardsById = new Map((rewards ?? []).map((reward) => [reward.id, reward]));
+  const storeMatchesTier = (store: Store | undefined) => selectedTier === "ALL" || store?.tier === selectedTier;
+  const filteredStores = storeRows.filter((store) => storeMatchesTier(store));
+  const filteredScans = scanRows.filter((scan) => {
+    const store = scan.store_id ? storesById.get(scan.store_id) : undefined;
+    return isAfterPeriodStart(scan.scanned_at, periodStart) && (selectedTier === "ALL" || scan.tier_level === selectedTier || store?.tier === selectedTier);
+  });
+  const filteredRedemptions = redemptionRows.filter((item) => {
+    const store = storesById.get(item.store_id);
+    return isAfterPeriodStart(item.created_at, periodStart) && storeMatchesTier(store);
+  });
+  const pendingRedemptions = filteredRedemptions.filter((item) => item.status === "PENDING" || item.status === "PROCESSING");
+  const successfulRedemptions = filteredRedemptions.filter((item) => item.status === "PAID" || item.status === "SHIPPED");
+  const filteredAlerts = openAlerts.filter((alert) => {
+    const store = alert.store_id ? storesById.get(alert.store_id) : undefined;
+    return isAfterPeriodStart(alert.created_at, periodStart) && (selectedTier === "ALL" || alert.attempted_tier === selectedTier || store?.tier === selectedTier);
+  });
+  const scanCountByStore = filteredScans.reduce<Record<string, number>>((counts, scan) => {
+    if (scan.store_id) counts[scan.store_id] = (counts[scan.store_id] ?? 0) + 1;
+    return counts;
+  }, {});
+  const pointsFromFilteredStores = filteredStores.reduce((sum, store) => sum + store.points, 0);
 
   return (
     <AdminShell title="Interactive Dashboard" subtitle="Track store activity, points, and scans by tier">
       <MessageBanner message={message} />
+      <DashboardFilters period={selectedPeriod} tier={selectedTier} />
       <section style={{ ...adminUi.panel, padding: 20, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950, letterSpacing: 1.2, textTransform: "uppercase" }}>LINE Back Office Alert</p>
@@ -50,13 +74,13 @@ export default async function AdminDashboardPage({
         </form>
       </section>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 16, marginBottom: 18 }}>
-        <Metric label="Total Stores" value={storeRows.length} />
-        <Metric label="Approved" value={storeRows.filter((store) => store.status === "APPROVED").length} />
-        <Metric label="Pending" value={storeRows.filter((store) => store.status === "PENDING_APPROVAL").length} />
-        <Metric label="Total Scans" value={scanRows.length} />
-        <Metric label="Total Points" value={storeRows.reduce((sum, store) => sum + store.points, 0)} />
-        <Metric label="Open Scan Alerts" value={openAlerts.length} tone="gold" />
-        <Metric label="Total Rewards Claimed" value={redemptionRows.length} tone="ruby" />
+        <Metric label="Total Stores" value={filteredStores.length} />
+        <Metric label="Approved" value={filteredStores.filter((store) => store.status === "APPROVED").length} />
+        <Metric label="Pending" value={filteredStores.filter((store) => store.status === "PENDING_APPROVAL").length} />
+        <Metric label="Total Scans" value={filteredScans.length} />
+        <Metric label="Total Points" value={pointsFromFilteredStores} />
+        <Metric label="Open Scan Alerts" value={filteredAlerts.length} tone="gold" />
+        <Metric label="Total Rewards Claimed" value={filteredRedemptions.length} tone="ruby" />
         <Metric label="Pending Fulfillment" value={pendingRedemptions.length} tone="gold" />
         <Metric label="Successful Fulfills" value={successfulRedemptions.length} tone="green" />
       </div>
@@ -93,7 +117,7 @@ export default async function AdminDashboardPage({
             </div>
           );
         }) : (
-          <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No pending reward payments right now.</p>
+        <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No pending reward payments right now.</p>
         )}
       </section>
 
@@ -105,7 +129,7 @@ export default async function AdminDashboardPage({
             <Link key={tier} href={`/admin/dashboard/${tier}`} style={{ textDecoration: "none", color: adminUi.charcoal, border: "1px solid rgba(101,0,19,.1)", borderRadius: 18, padding: 18 }}>
               <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950 }}>{tier}</p>
               <p style={{ margin: "10px 0 0", fontSize: 32, fontWeight: 950 }}>{storeRows.filter((store) => store.tier === tier).length} stores</p>
-              <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)" }}>{scanRows.filter((scan) => scan.tier_level === tier).length} scans recorded</p>
+              <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)" }}>{filteredScans.filter((scan) => scan.tier_level === tier).length} scans in selected period</p>
             </Link>
           ))}
         </div>
@@ -114,32 +138,58 @@ export default async function AdminDashboardPage({
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(320px,.75fr)", gap: 18 }}>
         <section style={{ ...adminUi.panel, overflow: "hidden" }}>
           <div style={{ padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)", fontWeight: 950 }}>Top Stores by Points</div>
-          {[...storeRows].sort((a, b) => b.points - a.points).slice(0, 12).map((store) => (
+          {[...filteredStores].sort((a, b) => (scanCountByStore[b.id] ?? 0) - (scanCountByStore[a.id] ?? 0) || b.points - a.points).slice(0, 12).map((store) => (
             <div key={store.id} style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr 1fr", gap: 12, padding: 16, borderBottom: "1px solid rgba(101,0,19,.08)" }}>
               <b>{store.name}</b>
               <span>{store.tier}</span>
               <span>{store.status}</span>
-              <span style={{ color: adminUi.ruby, fontWeight: 950 }}>{store.points} pts</span>
+              <span style={{ color: adminUi.ruby, fontWeight: 950 }}>{scanCountByStore[store.id] ?? 0} scans / {store.points} pts</span>
             </div>
           ))}
+          {!filteredStores.length ? <p style={{ padding: 22, color: "rgba(21,19,19,.58)" }}>No stores match this filter.</p> : null}
         </section>
 
         <section style={{ ...adminUi.panel, padding: 20 }}>
           <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950 }}>Recent Scans</h2>
           <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
-            {scanRows.slice(0, 8).map((scan) => (
+            {filteredScans.slice(0, 8).map((scan) => (
               <div key={scan.id} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 14, padding: 12 }}>
                 <p style={{ margin: 0, fontWeight: 950 }}>{storesById.get(scan.store_id ?? "")?.name ?? "Unknown store"}</p>
                 <p style={{ margin: "4px 0 0", color: adminUi.ruby, fontWeight: 900 }}>{scan.tier_level}</p>
                 <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>{new Date(scan.scanned_at).toLocaleString()}</p>
               </div>
             ))}
-            {!scanRows.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No scans yet.</p> : null}
+            {!filteredScans.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No scans match this filter.</p> : null}
           </div>
         </section>
       </div>
     </AdminShell>
   );
+}
+
+function normalizePeriod(value?: string): DashboardPeriod {
+  if (value === "day" || value === "week" || value === "month" || value === "all") return value;
+  return "all";
+}
+
+function normalizeTier(value?: string): DashboardTierFilter {
+  if (value === "UNASSIGNED" || value === "DISTRIBUTOR" || value === "TIER2" || value === "TIER3") return value;
+  return "ALL";
+}
+
+function getPeriodStart(period: DashboardPeriod) {
+  if (period === "all") return null;
+
+  const start = new Date();
+  if (period === "day") start.setDate(start.getDate() - 1);
+  if (period === "week") start.setDate(start.getDate() - 7);
+  if (period === "month") start.setMonth(start.getMonth() - 1);
+  return start;
+}
+
+function isAfterPeriodStart(value: string, start: Date | null) {
+  if (!start) return true;
+  return new Date(value).getTime() >= start.getTime();
 }
 
 function Metric({ label, value, tone = "ruby" }: { label: string; value: number; tone?: "ruby" | "gold" | "green" }) {
