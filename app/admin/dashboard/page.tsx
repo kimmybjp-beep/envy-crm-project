@@ -5,11 +5,11 @@ import { updateRedemptionStatusAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { Reward, RewardRedemption, Scan, Store, StoreTier } from "@/lib/types";
+import type { Reward, RewardRedemption, Scan, ScanAlert, Store, StoreTier } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const tiers: StoreTier[] = ["DISTRIBUTOR", "TIER2", "TIER3"];
+const tiers: StoreTier[] = ["UNASSIGNED", "DISTRIBUTOR", "TIER2", "TIER3"];
 
 export default async function AdminDashboardPage({
   searchParams
@@ -18,11 +18,12 @@ export default async function AdminDashboardPage({
 }) {
   const { message } = await searchParams;
   const supabase = getSupabaseAdminClient();
-  const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }] = await Promise.all([
+  const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }, { data: scanAlerts }] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
     supabase.from("scans").select("*").order("scanned_at", { ascending: false }).returns<Scan[]>(),
     supabase.from("reward_redemptions").select("*").order("created_at", { ascending: false }).returns<RewardRedemption[]>(),
-    supabase.from("rewards").select("*").returns<Reward[]>()
+    supabase.from("rewards").select("*").returns<Reward[]>(),
+    supabase.from("scan_alerts").select("*").neq("status", "RESOLVED").returns<ScanAlert[]>()
   ]);
 
   const storeRows = stores ?? [];
@@ -30,6 +31,7 @@ export default async function AdminDashboardPage({
   const redemptionRows = redemptions ?? [];
   const pendingRedemptions = redemptionRows.filter((item) => item.status === "PENDING" || item.status === "PROCESSING");
   const successfulRedemptions = redemptionRows.filter((item) => item.status === "PAID" || item.status === "SHIPPED");
+  const openAlerts = scanAlerts ?? [];
   const storesById = new Map(storeRows.map((store) => [store.id, store]));
   const rewardsById = new Map((rewards ?? []).map((reward) => [reward.id, reward]));
 
@@ -53,6 +55,7 @@ export default async function AdminDashboardPage({
         <Metric label="Pending" value={storeRows.filter((store) => store.status === "PENDING_APPROVAL").length} />
         <Metric label="Total Scans" value={scanRows.length} />
         <Metric label="Total Points" value={storeRows.reduce((sum, store) => sum + store.points, 0)} />
+        <Metric label="Open Scan Alerts" value={openAlerts.length} tone="gold" />
         <Metric label="Total Rewards Claimed" value={redemptionRows.length} tone="ruby" />
         <Metric label="Pending Fulfillment" value={pendingRedemptions.length} tone="gold" />
         <Metric label="Successful Fulfills" value={successfulRedemptions.length} tone="green" />

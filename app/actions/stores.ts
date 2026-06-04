@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { hashPassword } from "@/lib/password";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseClient } from "@/lib/supabase";
 
 const storeSchema = z.object({
@@ -63,7 +64,7 @@ export async function createStoreAction(formData: FormData) {
     phone: parsed.data.phone,
     password_hash: hash,
     password_salt: salt,
-    tier: "TIER3",
+    tier: "UNASSIGNED",
     latitude: parsed.data.latitude ?? null,
     longitude: parsed.data.longitude ?? null,
     image_url: imageUrl,
@@ -93,7 +94,7 @@ function parseDataUrlImage(value: string) {
 export async function reviewStoreAction(formData: FormData) {
   const storeId = z.string().uuid().parse(formData.get("storeId"));
   const status = z.enum(["APPROVED", "REJECTED"]).parse(formData.get("status"));
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { error } = await supabase
     .from("stores")
@@ -111,7 +112,7 @@ export async function resetStorePasswordAction(formData: FormData) {
   const storeId = z.string().uuid().parse(formData.get("storeId"));
   const password = z.string().min(8).parse(formData.get("password"));
   const { hash, salt } = hashPassword(password);
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
 
   const { error } = await supabase
     .from("stores")
@@ -125,4 +126,26 @@ export async function resetStorePasswordAction(formData: FormData) {
 
   revalidatePath("/admin");
   redirect("/admin?message=password-reset");
+}
+
+export async function updateStoreTierAction(formData: FormData) {
+  const storeId = z.string().uuid().parse(formData.get("storeId"));
+  const tier = z.enum(["UNASSIGNED", "DISTRIBUTOR", "TIER2", "TIER3"]).parse(formData.get("tier"));
+  const tierLocked = formData.get("tierLocked") === "on";
+  const supabase = getSupabaseAdminClient();
+
+  const { error } = await supabase
+    .from("stores")
+    .update({
+      tier,
+      tier_locked: tierLocked
+    })
+    .eq("id", storeId);
+
+  if (error) redirect("/admin?message=tier-update-error");
+
+  revalidatePath("/admin");
+  revalidatePath("/admin/dashboard");
+  revalidatePath("/scan");
+  redirect("/admin?message=tier-updated");
 }

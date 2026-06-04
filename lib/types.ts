@@ -1,4 +1,4 @@
-export type StoreTier = "DISTRIBUTOR" | "TIER2" | "TIER3";
+export type StoreTier = "UNASSIGNED" | "DISTRIBUTOR" | "TIER2" | "TIER3";
 
 export type StoreStatus = "PENDING_APPROVAL" | "APPROVED" | "REJECTED";
 
@@ -14,6 +14,7 @@ export type Store = {
   image_url: string | null;
   status: StoreStatus;
   tier: StoreTier;
+  tier_locked: boolean;
   points: number;
   created_at: string;
 };
@@ -24,6 +25,20 @@ export type Scan = {
   store_id: string | null;
   tier_level: StoreTier;
   scanned_at: string;
+};
+
+export type ScanAlert = {
+  id: string;
+  store_id: string | null;
+  existing_store_id: string | null;
+  scanned_code: string;
+  attempted_tier: StoreTier | null;
+  alert_type: string;
+  severity: string;
+  message: string;
+  status: "OPEN" | "REVIEWING" | "RESOLVED" | string;
+  created_at: string;
+  resolved_at: string | null;
 };
 
 export type AdminMessage = {

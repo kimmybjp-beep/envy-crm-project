@@ -138,7 +138,9 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
         </PremiumInput>
         {selectedStore ? (
           <p className="rounded-lg bg-champagne/15 px-4 py-3 text-sm font-semibold text-ruby-900">
-            Active tier: {selectedStore.tier}
+            {selectedStore.tier_locked
+              ? `Locked tier: ${selectedStore.tier}`
+              : `Auto tier mode: current ${selectedStore.tier}`}
           </p>
         ) : null}
         <div className="rounded-lg border border-dashed border-ruby-900/25 bg-ruby-50/40 p-4">

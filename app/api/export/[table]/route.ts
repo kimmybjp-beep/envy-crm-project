@@ -5,6 +5,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 const allowedTables = new Set([
   "stores",
   "scans",
+  "scan_alerts",
   "qr_batches",
   "qr_codes",
   "rewards",

@@ -1,13 +1,13 @@
 import { Download } from "lucide-react";
 import { AdminShell, adminUi } from "@/components/admin-shell";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
-const tables = ["stores", "scans", "qr_batches", "qr_codes", "rewards", "reward_redemptions"];
+const tables = ["stores", "scans", "scan_alerts", "qr_batches", "qr_codes", "rewards", "reward_redemptions"];
 
 export default async function AdminDatabasePage() {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const tableSummaries = await Promise.all(
     tables.map(async (table) => {
       const [{ count }, { data }] = await Promise.all([

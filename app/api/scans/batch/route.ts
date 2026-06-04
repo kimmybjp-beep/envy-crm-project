@@ -7,7 +7,22 @@ const batchScanSchema = z.object({
   codes: z.array(z.string().min(3)).min(1).max(200)
 });
 
-const DUPLICATE_SCAN_MESSAGE = "\u0e42\u0e04\u0e49\u0e14\u0e19\u0e35\u0e49\u0e16\u0e39\u0e01\u0e2a\u0e41\u0e01\u0e19\u0e43\u0e19 Tier \u0e02\u0e2d\u0e07\u0e04\u0e38\u0e13\u0e44\u0e1b\u0e41\u0e25\u0e49\u0e27!";
+type RegisterScanResult = {
+  ok?: boolean;
+  code?: string;
+  tier_level?: string;
+  alert_id?: string;
+};
+
+const scanMessages: Record<string, string> = {
+  DUPLICATE_SCAN_IN_TIER: "โค้ดนี้ถูกสแกนใน Tier ของคุณไปแล้ว!",
+  SAME_STORE_TIER2_DUPLICATE: "ระบบไม่อนุมัติ: QR นี้เคยถูกสแกนโดยร้านคุณใน Tier 2 แล้ว ระบบแจ้ง Admin ตรวจสอบแล้ว",
+  STORE_NOT_APPROVED: "ร้านยังไม่ได้รับอนุมัติ จึงยังสแกนไม่ได้",
+  LOCKED_WITH_UNASSIGNED_TIER: "ร้านนี้ถูกล็อก Tier เป็น UNASSIGNED กรุณาติดต่อ Back Office",
+  INVALID_SCAN_CODE: "โค้ด QR ไม่ถูกต้อง",
+  STORE_REQUIRED: "ไม่พบข้อมูลร้าน",
+  STORE_NOT_FOUND: "ไม่พบร้านในระบบ"
+};
 
 export async function POST(request: Request) {
   const parsed = batchScanSchema.safeParse(await request.json());
@@ -24,17 +39,26 @@ export async function POST(request: Request) {
   const results = [];
 
   for (const code of normalizedCodes) {
-    const { error } = await supabase.rpc("register_scan", {
+    const { data, error } = await supabase.rpc("register_scan", {
       p_store_id: parsed.data.storeId,
       p_scanned_code: code
     });
+    const scanResult = data as RegisterScanResult | null;
 
-    if (error?.code === "23505" || error?.message.includes("DUPLICATE_SCAN_IN_TIER")) {
-      results.push({ code, ok: false, message: DUPLICATE_SCAN_MESSAGE });
-    } else if (error) {
+    if (error) {
       results.push({ code, ok: false, message: error.message });
+    } else if (!scanResult?.ok) {
+      results.push({
+        code,
+        ok: false,
+        message: scanMessages[scanResult?.code ?? ""] ?? "ไม่สามารถบันทึกการสแกนได้"
+      });
     } else {
-      results.push({ code, ok: true, message: "บันทึกสำเร็จ" });
+      results.push({
+        code,
+        ok: true,
+        message: `บันทึกสำเร็จ (${scanResult.tier_level ?? "AUTO"})`
+      });
     }
   }
 

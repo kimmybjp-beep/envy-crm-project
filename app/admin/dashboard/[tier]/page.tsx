@@ -5,7 +5,7 @@ import type { Scan, Store, StoreTier } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-const tiers: StoreTier[] = ["DISTRIBUTOR", "TIER2", "TIER3"];
+const tiers: StoreTier[] = ["UNASSIGNED", "DISTRIBUTOR", "TIER2", "TIER3"];
 
 export default async function TierDashboardPage({
   params
