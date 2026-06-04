@@ -1,17 +1,11 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
+import { BarcodeFormat, DecodeHintType } from "@zxing/library";
 import { Camera, ImageUp, ScanLine, Square, X } from "lucide-react";
 import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-panel";
 import type { Store } from "@/lib/types";
-
-type DetectedBarcode = {
-  rawValue: string;
-};
-
-type BarcodeDetectorConstructor = new (options?: { formats?: string[] }) => {
-  detect(source: ImageBitmapSource): Promise<DetectedBarcode[]>;
-};
 
 type ScanResult = {
   code: string;
@@ -25,13 +19,18 @@ type FileReadStats = {
   failed: number;
 };
 
-declare global {
-  interface Window {
-    BarcodeDetector?: BarcodeDetectorConstructor;
-  }
-}
-
-const detectorFormats = ["qr_code", "ean_13", "code_128", "code_39", "upc_a"];
+const scannerHints = new Map<DecodeHintType, unknown>([
+  [
+    DecodeHintType.POSSIBLE_FORMATS,
+    [
+      BarcodeFormat.QR_CODE,
+      BarcodeFormat.CODE_128,
+      BarcodeFormat.CODE_39,
+      BarcodeFormat.EAN_13,
+      BarcodeFormat.UPC_A
+    ]
+  ]
+]);
 
 export function ScanSimulator({ stores }: { stores: Store[] }) {
   const [storeId, setStoreId] = useState(stores[0]?.id ?? "");
@@ -44,40 +43,43 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
   const [cameraStatus, setCameraStatus] = useState("ยังไม่ได้เปิดกล้อง");
   const [manualCode, setManualCode] = useState("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const streamRef = useRef<MediaStream | null>(null);
-  const scannerTimerRef = useRef<number | null>(null);
-
-  const canAutoDetect = typeof window !== "undefined" && Boolean(window.BarcodeDetector);
+  const readerRef = useRef<BrowserMultiFormatReader | null>(null);
+  const controlsRef = useRef<IScannerControls | null>(null);
+  const lastCameraCodeRef = useRef("");
 
   useEffect(() => {
     return () => stopCamera(false);
   }, []);
 
+  function getReader() {
+    if (!readerRef.current) {
+      readerRef.current = new BrowserMultiFormatReader(scannerHints, {
+        delayBetweenScanAttempts: 300,
+        delayBetweenScanSuccess: 900,
+        tryPlayVideoTimeout: 7000
+      });
+    }
+
+    return readerRef.current;
+  }
+
   async function decodeSavedImages(files: FileList | null) {
     if (!files?.length) return;
 
+    const reader = getReader();
     const fileArray = Array.from(files);
-    setFileStats({ selected: fileArray.length, detected: 0, failed: 0 });
-    setStatusMessage(`เลือกแล้ว ${fileArray.length} ไฟล์ กำลังอ่าน QR...`);
-
-    if (!window.BarcodeDetector) {
-      setFileStats({ selected: fileArray.length, detected: 0, failed: fileArray.length });
-      setStatusMessage(
-        `เลือกแล้ว ${fileArray.length} ไฟล์ แต่ browser นี้ยังอ่าน QR จากรูปอัตโนมัติไม่ได้ กรุณาเปิดด้วย Chrome/Android หรือใช้ Live Camera/กรอกรหัสสำรอง`
-      );
-      return;
-    }
-
-    const detector = new window.BarcodeDetector({ formats: detectorFormats });
     const detectedCodes: string[] = [];
     let failedCount = 0;
 
+    setFileStats({ selected: fileArray.length, detected: 0, failed: 0 });
+    setStatusMessage(`เลือกแล้ว ${fileArray.length} ไฟล์ กำลังอ่าน QR...`);
+
     for (const file of fileArray) {
+      const imageUrl = URL.createObjectURL(file);
+
       try {
-        const bitmap = await createImageBitmap(file);
-        const detected = await detector.detect(bitmap);
-        bitmap.close();
-        const code = normalizeCode(detected[0]?.rawValue ?? "");
+        const result = await reader.decodeFromImageUrl(imageUrl);
+        const code = normalizeCode(result.getText());
 
         if (code) {
           detectedCodes.push(code);
@@ -86,6 +88,8 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
         }
       } catch {
         failedCount += 1;
+      } finally {
+        URL.revokeObjectURL(imageUrl);
       }
     }
 
@@ -97,74 +101,59 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
   }
 
   async function startCamera() {
-    if (!navigator.mediaDevices?.getUserMedia) {
+    if (!navigator.mediaDevices?.getUserMedia || !videoRef.current) {
       setCameraStatus("เครื่องนี้ไม่รองรับการเปิดกล้องผ่าน browser");
       return;
     }
 
-    if (!window.BarcodeDetector) {
-      setCameraStatus("Browser นี้ยังไม่รองรับ Live QR scan กรุณาใช้ Chrome บน Android หรือเลือกรูป/กรอกรหัสสำรอง");
-      return;
-    }
-
     try {
+      stopCamera(false);
       setCameraStatus("กำลังขอสิทธิ์เปิดกล้อง...");
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: {
-          facingMode: { ideal: "environment" },
-          width: { ideal: 1280 },
-          height: { ideal: 720 }
+
+      const controls = await getReader().decodeFromConstraints(
+        {
+          video: {
+            facingMode: { ideal: "environment" },
+            width: { ideal: 1280 },
+            height: { ideal: 720 }
+          },
+          audio: false
         },
-        audio: false
-      });
-      streamRef.current = stream;
+        videoRef.current,
+        (result, error) => {
+          if (result) {
+            const code = normalizeCode(result.getText());
 
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
+            if (code && code !== lastCameraCodeRef.current) {
+              lastCameraCodeRef.current = code;
+              addCodes([code]);
+              setCameraStatus("อ่าน QR จากกล้องได้แล้ว เพิ่มเข้าคิวเรียบร้อย");
+            }
 
+            return;
+          }
+
+          if (error && error.name !== "NotFoundException") {
+            setCameraStatus("กล้องเปิดแล้ว แต่ยังอ่าน QR ไม่ได้ ลองขยับให้ QR ชัดและมีแสงพอ");
+          }
+        }
+      );
+
+      controlsRef.current = controls;
       setCameraActive(true);
       setCameraStatus("เปิดกล้องแล้ว เล็ง QR ให้อยู่กลางกรอบ");
-      startCameraScannerLoop();
     } catch (error) {
       setCameraActive(false);
-      setCameraStatus(`เปิดกล้องไม่สำเร็จ: ${error instanceof Error ? error.message : String(error)}`);
+      setCameraStatus(
+        `เปิดกล้องไม่สำเร็จ: ${error instanceof Error ? error.message : String(error)}`
+      );
     }
-  }
-
-  function startCameraScannerLoop() {
-    if (!window.BarcodeDetector) return;
-
-    const detector = new window.BarcodeDetector({ formats: detectorFormats });
-    if (scannerTimerRef.current) window.clearInterval(scannerTimerRef.current);
-
-    scannerTimerRef.current = window.setInterval(async () => {
-      const video = videoRef.current;
-      if (!video || video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
-
-      try {
-        const detected = await detector.detect(video);
-        const code = normalizeCode(detected[0]?.rawValue ?? "");
-
-        if (code) {
-          addCodes([code]);
-          setCameraStatus("อ่าน QR จากกล้องได้แล้ว เพิ่มเข้า queue เรียบร้อย");
-        }
-      } catch {
-        // Keep scanning quietly; noisy camera errors make the UX worse.
-      }
-    }, 800);
   }
 
   function stopCamera(updateState = true) {
-    if (scannerTimerRef.current) {
-      window.clearInterval(scannerTimerRef.current);
-      scannerTimerRef.current = null;
-    }
-
-    streamRef.current?.getTracks().forEach((track) => track.stop());
-    streamRef.current = null;
+    controlsRef.current?.stop();
+    controlsRef.current = null;
+    lastCameraCodeRef.current = "";
 
     if (videoRef.current) {
       videoRef.current.srcObject = null;
@@ -218,7 +207,7 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
 
     addCodes([code]);
     setManualCode("");
-    setStatusMessage("เพิ่มรหัส QR สำรองเข้า queue แล้ว");
+    setStatusMessage("เพิ่มรหัส QR สำรองเข้าคิวแล้ว");
   }
 
   function addCodes(nextCodes: string[]) {
@@ -257,7 +246,7 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
             Live Camera
           </div>
           <div className="overflow-hidden rounded-xl border border-ruby-900/10 bg-charcoal">
-            <video ref={videoRef} playsInline muted className="h-64 w-full bg-charcoal object-cover" />
+            <video ref={videoRef} playsInline muted autoPlay className="h-64 w-full bg-charcoal object-cover" />
           </div>
           <p className="mt-3 rounded-lg bg-ruby-50 px-4 py-3 text-sm font-semibold text-ruby-900">
             {cameraStatus}
@@ -282,6 +271,9 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
               ปิดกล้อง
             </button>
           </div>
+          <p className="mt-3 text-xs text-charcoal/55">
+            บน iPhone ให้เปิดผ่าน Safari/Chrome จริง ถ้าเปิดจาก LINE แล้วกล้องไม่ขึ้น ให้กดเปิดใน browser ภายนอก
+          </p>
         </div>
 
         <div className="rounded-lg border border-dashed border-ruby-900/25 bg-ruby-50/40 p-4">
@@ -314,7 +306,7 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
             </div>
           </div>
           <p className="mt-2 text-xs text-charcoal/60">
-            เลือกได้หลายรูปพร้อมกัน ถ้า browser ไม่รองรับ QR auto-read ระบบจะแจ้งทันที
+            เลือกได้หลายรูปพร้อมกัน ถ้าบางรูปอ่านไม่ได้ ระบบจะบันทึกเฉพาะ QR ที่อ่านได้
           </p>
         </div>
 
@@ -332,12 +324,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
             </button>
           </div>
         </div>
-
-        {!canAutoDetect ? (
-          <p className="rounded-lg bg-champagne/20 px-4 py-3 text-sm font-semibold text-ruby-900">
-            หมายเหตุ: Browser นี้ไม่รองรับ QR auto-read ผ่าน BarcodeDetector แนะนำใช้ Chrome บน Android หรือกรอกรหัสสำรอง
-          </p>
-        ) : null}
 
         {statusMessage ? <p className="rounded-lg bg-ruby-50 px-4 py-3 text-sm font-semibold text-ruby-900">{statusMessage}</p> : null}
 

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { BrowserQRCodeSvgWriter } from "@zxing/browser";
+import { EncodeHintType } from "@zxing/library";
 import { Download, QrCode, Sparkles } from "lucide-react";
 import { adminUi } from "@/components/admin-shell";
 
@@ -184,22 +186,24 @@ async function createQrSvg(code: string, distributorName: string) {
   <rect x="48" y="48" width="424" height="84" rx="22" fill="#a9001f"/>
   <text x="260" y="82" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="900" fill="#ffffff">APPLE ENVY QR</text>
   <text x="260" y="108" text-anchor="middle" font-family="Arial, sans-serif" font-size="13" fill="#f8d98a">${escapeXml(distributorName)}</text>
-  <rect x="70" y="140" width="368" height="368" rx="18" fill="#ffffff" stroke="#a9001f" stroke-width="3"/>
-  <image href="${qrDataUrl}" x="86" y="156" width="336" height="336"/>
+  <rect x="60" y="140" width="400" height="400" rx="18" fill="#ffffff" stroke="#a9001f" stroke-width="3"/>
+  <image href="${qrDataUrl}" x="80" y="160" width="360" height="360"/>
   <text x="260" y="558" text-anchor="middle" font-family="Consolas, monospace" font-size="25" font-weight="900" fill="#151313">${code}</text>
   <text x="260" y="588" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#777">18-digit unique tracking ID</text>
 </svg>`;
 }
 
 async function fetchQrDataUrl(code: string) {
-  const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=336x336&data=${encodeURIComponent(code)}`);
-  const blob = await response.blob();
+  const writer = new BrowserQRCodeSvgWriter();
+  const hints = new Map<EncodeHintType, unknown>([
+    [EncodeHintType.MARGIN, 4],
+    [EncodeHintType.CHARACTER_SET, "UTF-8"]
+  ]);
+  const qrSvg = writer.write(code, 360, 360, hints);
+  const serialized = new XMLSerializer().serializeToString(qrSvg);
+  const encoded = btoa(unescape(encodeURIComponent(serialized)));
 
-  return new Promise<string>((resolve) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result));
-    reader.readAsDataURL(blob);
-  });
+  return `data:image/svg+xml;base64,${encoded}`;
 }
 
 function escapeXml(value: string) {
