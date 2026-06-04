@@ -205,6 +205,10 @@ $$;
 
 grant execute on function public.register_scan(uuid, text) to anon, authenticated;
 
+insert into storage.buckets (id, name, public)
+values ('storefront-photos', 'storefront-photos', true)
+on conflict (id) do update set public = true;
+
 alter table public.stores enable row level security;
 alter table public.scans enable row level security;
 alter table public.admin_messages enable row level security;
@@ -217,6 +221,16 @@ drop policy if exists "Public can insert pending stores" on public.stores;
 create policy "Public can insert pending stores"
   on public.stores for insert
   with check (status = 'PENDING_APPROVAL');
+
+drop policy if exists "Public can upload storefront photos" on storage.objects;
+create policy "Public can upload storefront photos"
+  on storage.objects for insert
+  with check (bucket_id = 'storefront-photos');
+
+drop policy if exists "Public can read storefront photos" on storage.objects;
+create policy "Public can read storefront photos"
+  on storage.objects for select
+  using (bucket_id = 'storefront-photos');
 
 drop policy if exists "Public can read stores" on public.stores;
 create policy "Public can read stores"

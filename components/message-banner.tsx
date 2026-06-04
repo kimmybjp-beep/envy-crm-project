@@ -3,6 +3,8 @@ const messages: Record<string, string> = {
   "auth-error": "Authentication failed. Check your credentials and try again.",
   "admin-error": "Admin password is incorrect.",
   "photo-error": "Storefront photo upload failed.",
+  "photo-required": "Please take or upload a storefront photo before submitting.",
+  "photo-upload-error": "Storefront photo could not be uploaded. Check Supabase Storage bucket setup.",
   "create-error": "Store onboarding could not be submitted.",
   "review-error": "Store review could not be saved.",
   "message-error": "Admin message could not be published.",

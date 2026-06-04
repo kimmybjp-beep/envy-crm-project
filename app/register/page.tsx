@@ -1,8 +1,9 @@
-import { Camera, CheckCircle2, Clock3, ShieldCheck } from "lucide-react";
+import { CheckCircle2, Clock3, ShieldCheck } from "lucide-react";
 import { createStoreAction } from "@/app/actions/stores";
 import { BrandShell } from "@/components/brand-shell";
 import { MessageBanner } from "@/components/message-banner";
 import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-panel";
+import { StorefrontCaptureFields } from "@/components/storefront-capture-fields";
 
 export default async function RegisterPage({
   searchParams
@@ -43,13 +44,6 @@ export default async function RegisterPage({
               <PremiumInput label="เบอร์โทร">
                 <input name="phone" required placeholder="08x-xxx-xxxx" className="field-control" />
               </PremiumInput>
-              <PremiumInput label="Tier">
-                <select name="tier" required className="field-control">
-                  <option value="DISTRIBUTOR">Distributor</option>
-                  <option value="TIER2">Tier 2 Wholesaler</option>
-                  <option value="TIER3">Tier 3 Retailer</option>
-                </select>
-              </PremiumInput>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               <PremiumInput label="Password">
@@ -59,18 +53,7 @@ export default async function RegisterPage({
                 <input name="confirmPassword" type="password" required minLength={8} placeholder="Type password again" className="field-control" />
               </PremiumInput>
             </div>
-            <div className="rounded-lg border border-dashed border-ruby-900/25 bg-ruby-50/40 p-5">
-              <div className="flex items-start gap-3">
-                <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-ruby-900 text-champagne">
-                  <Camera size={18} />
-                </span>
-                <div className="flex-1">
-                  <p className="font-semibold text-charcoal">รูปหน้าร้าน</p>
-                  <p className="mt-1 text-sm text-charcoal/60">ตอนนี้วาง URL รูปก่อน รอบถัดไปค่อยต่อ Supabase Storage upload</p>
-                  <input name="imageUrl" type="url" placeholder="https://..." className="field-control mt-3" />
-                </div>
-              </div>
-            </div>
+            <StorefrontCaptureFields />
             <LuxuryButton className="w-full py-4 text-base sm:w-auto sm:px-8">ส่งสมัครร้าน</LuxuryButton>
           </form>
         </PremiumPanel>
