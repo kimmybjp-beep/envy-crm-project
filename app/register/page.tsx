@@ -3,6 +3,7 @@ import { createStoreAction } from "@/app/actions/stores";
 import { BrandShell } from "@/components/brand-shell";
 import { MessageBanner } from "@/components/message-banner";
 import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-panel";
+import { RegistrationSuccessPopup } from "@/components/registration-success-popup";
 import { StorefrontCaptureFields } from "@/components/storefront-capture-fields";
 
 export default async function RegisterPage({
@@ -18,6 +19,8 @@ export default async function RegisterPage({
       title="สมัครร้าน Apple ENVY"
       subtitle="กรอกข้อมูลร้านเพื่อส่งให้ Back Office ตรวจสอบและอนุมัติ"
     >
+      {message === "store-submitted" ? <RegistrationSuccessPopup /> : null}
+      {message === "store-already-submitted" ? <RegistrationSuccessPopup variant="duplicate" /> : null}
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_390px]">
         <PremiumPanel>
           <div className="mb-6 flex flex-col gap-4 border-b border-ruby-900/10 pb-5 sm:flex-row sm:items-center sm:justify-between">

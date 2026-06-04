@@ -31,14 +31,15 @@ const messages: Record<string, string> = {
   "not-approved": "This store is not approved yet, so scans are blocked.",
   "scan-error": "Scan could not be registered.",
   success: "Scan registered successfully.",
-  "store-submitted": "Store submitted for approval.",
+  "store-submitted": "ลงทะเบียนร้านเรียบร้อย โปรดรออนุมัติ",
+  "store-already-submitted": "ร้านนี้ลงทะเบียนไว้แล้ว โปรดรอ Back Office ตรวจสอบและอนุมัติ",
   "review-saved": "Store status updated."
 };
 
 export function MessageBanner({ message }: { message?: string }) {
   if (!message || !messages[message]) return null;
 
-  const isSuccess = message === "success" || message === "store-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "reward-deleted" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "line-summary-sent";
+  const isSuccess = message === "success" || message === "store-submitted" || message === "store-already-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "reward-deleted" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "line-summary-sent";
 
   return (
     <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${

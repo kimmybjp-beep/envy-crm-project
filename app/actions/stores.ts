@@ -35,6 +35,16 @@ export async function createStoreAction(formData: FormData) {
 
   const supabase = getSupabaseClient();
   const { hash, salt } = hashPassword(parsed.data.password);
+  const phone = parsed.data.phone.trim();
+  const { data: existingStore } = await supabase
+    .from("stores")
+    .select("id")
+    .eq("phone", phone)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingStore) redirect("/register?message=store-already-submitted");
+
   const photoDataUrl = z.string().parse(formData.get("storefrontPhotoDataUrl") || "");
   let imageUrl: string | null = null;
 
@@ -61,7 +71,7 @@ export async function createStoreAction(formData: FormData) {
   const { error } = await supabase.from("stores").insert({
     name: parsed.data.name,
     owner_name: parsed.data.ownerName,
-    phone: parsed.data.phone,
+    phone,
     password_hash: hash,
     password_salt: salt,
     tier: "UNASSIGNED",
@@ -74,7 +84,7 @@ export async function createStoreAction(formData: FormData) {
   if (error) redirect("/register?message=create-error");
 
   revalidatePath("/admin");
-  redirect("/login?message=store-submitted");
+  redirect("/register?message=store-submitted");
 }
 
 function parseDataUrlImage(value: string) {
