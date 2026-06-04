@@ -34,20 +34,21 @@ export async function createStoreAction(formData: FormData) {
 
   const supabase = getSupabaseClient();
   const { hash, salt } = hashPassword(parsed.data.password);
-  const photoFile = formData.get("storefrontPhoto");
+  const photoDataUrl = z.string().parse(formData.get("storefrontPhotoDataUrl") || "");
   let imageUrl: string | null = null;
 
-  if (!(photoFile instanceof File) || photoFile.size === 0 || !photoFile.type.startsWith("image/")) {
+  const photo = parseDataUrlImage(photoDataUrl);
+
+  if (!photo) {
     redirect("/register?message=photo-required");
   }
 
-  const extension = photoFile.name.split(".").pop()?.toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
-  const photoPath = `pending/${crypto.randomUUID()}.${extension}`;
+  const photoPath = `pending/${crypto.randomUUID()}.${photo.extension}`;
   const { error: uploadError } = await supabase.storage
     .from("storefront-photos")
-    .upload(photoPath, photoFile, {
+    .upload(photoPath, photo.bytes, {
       cacheControl: "3600",
-      contentType: photoFile.type,
+      contentType: photo.mimeType,
       upsert: false
     });
 
@@ -73,6 +74,20 @@ export async function createStoreAction(formData: FormData) {
 
   revalidatePath("/admin");
   redirect("/login?message=store-submitted");
+}
+
+function parseDataUrlImage(value: string) {
+  const match = value.match(/^data:(image\/(?:jpeg|jpg|png|webp));base64,([A-Za-z0-9+/=]+)$/);
+
+  if (!match) return null;
+
+  const mimeType = match[1] === "image/jpg" ? "image/jpeg" : match[1];
+  const extension = mimeType === "image/png" ? "png" : mimeType === "image/webp" ? "webp" : "jpg";
+  const bytes = Buffer.from(match[2], "base64");
+
+  if (!bytes.length || bytes.length > 1_500_000) return null;
+
+  return { bytes, mimeType, extension };
 }
 
 export async function reviewStoreAction(formData: FormData) {
