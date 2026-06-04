@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { publishAdminMessageAction } from "@/app/actions/admin";
 import { resolveScanAlertAction } from "@/app/actions/scans";
 import { resetStorePasswordAction, reviewStoreAction, updateStoreTierAction } from "@/app/actions/stores";
@@ -148,9 +149,58 @@ export default async function AdminPage({
               padding: "18px 20px",
               borderBottom: "1px solid rgba(101,0,19,.08)"
             }}>
-              <div>
-                <p style={{ margin: 0, fontWeight: 950, color: adminUi.charcoal }}>{store.name}</p>
-                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.55)", fontSize: 13 }}>{store.owner_name} - {store.phone}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "82px minmax(0,1fr)", gap: 14, alignItems: "start" }}>
+                {store.image_url ? (
+                  <a
+                    href={store.image_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{
+                      display: "block",
+                      width: 82,
+                      height: 82,
+                      overflow: "hidden",
+                      borderRadius: 18,
+                      border: "1px solid rgba(101,0,19,.14)",
+                      background: "rgba(101,0,19,.04)",
+                      boxShadow: "0 12px 28px rgba(101,0,19,.10)"
+                    }}
+                    title="Open storefront photo"
+                  >
+                    <Image
+                      src={store.image_url}
+                      alt={`Storefront photo for ${store.name}`}
+                      width={82}
+                      height={82}
+                      style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}
+                    />
+                  </a>
+                ) : (
+                  <div style={{
+                    width: 82,
+                    height: 82,
+                    display: "grid",
+                    placeItems: "center",
+                    borderRadius: 18,
+                    border: "1px dashed rgba(101,0,19,.22)",
+                    background: "rgba(101,0,19,.04)",
+                    color: "rgba(21,19,19,.45)",
+                    fontSize: 11,
+                    fontWeight: 900,
+                    textAlign: "center"
+                  }}>
+                    No photo
+                  </div>
+                )}
+                <div>
+                  <p style={{ margin: 0, fontWeight: 950, color: adminUi.charcoal }}>{store.name}</p>
+                  <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.55)", fontSize: 13 }}>{store.owner_name} - {store.phone}</p>
+                  {store.image_url ? (
+                    <a href={store.image_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", marginTop: 8, color: adminUi.ruby, fontSize: 12, fontWeight: 950, textDecoration: "none" }}>
+                      View storefront photo
+                    </a>
+                  ) : null}
+                </div>
               </div>
               <div>
                 <p style={{ margin: 0, fontWeight: 900 }}>{store.tier}</p>
