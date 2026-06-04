@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { Send } from "lucide-react";
+import { GitBranch, Send } from "lucide-react";
 import { sendLineDailySummaryAction } from "@/app/actions/notifications";
 import { updateRedemptionStatusAction } from "@/app/actions/rewards";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { DashboardFilters, type DashboardPeriod, type DashboardTierFilter } from "@/components/dashboard-filters";
 import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { Reward, RewardRedemption, Scan, ScanAlert, Store, StoreTier } from "@/lib/types";
+import type { QrCodeRecord, Reward, RewardRedemption, Scan, ScanAlert, Store, StoreTier } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,12 +22,13 @@ export default async function AdminDashboardPage({
   const selectedTier = normalizeTier(rawTier);
   const periodStart = getPeriodStart(selectedPeriod);
   const supabase = getSupabaseAdminClient();
-  const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }, { data: scanAlerts }] = await Promise.all([
+  const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }, { data: scanAlerts }, { data: qrCodes }] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
     supabase.from("scans").select("*").order("scanned_at", { ascending: false }).returns<Scan[]>(),
     supabase.from("reward_redemptions").select("*").order("created_at", { ascending: false }).returns<RewardRedemption[]>(),
     supabase.from("rewards").select("*").returns<Reward[]>(),
-    supabase.from("scan_alerts").select("*").neq("status", "RESOLVED").returns<ScanAlert[]>()
+    supabase.from("scan_alerts").select("*").neq("status", "RESOLVED").returns<ScanAlert[]>(),
+    supabase.from("qr_codes").select("*").returns<QrCodeRecord[]>()
   ]);
 
   const storeRows = stores ?? [];
@@ -57,6 +58,12 @@ export default async function AdminDashboardPage({
     return counts;
   }, {});
   const pointsFromFilteredStores = filteredStores.reduce((sum, store) => sum + store.points, 0);
+  const salesTrees = buildSalesTrees({
+    qrCodes: qrCodes ?? [],
+    scans: filteredScans,
+    storesById,
+    selectedTier
+  });
 
   return (
     <AdminShell title="Interactive Dashboard" subtitle="Track store activity, points, and scans by tier">
@@ -84,6 +91,57 @@ export default async function AdminDashboardPage({
         <Metric label="Pending Fulfillment" value={pendingRedemptions.length} tone="gold" />
         <Metric label="Successful Fulfills" value={successfulRedemptions.length} tone="green" />
       </div>
+
+      <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)", flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 950, display: "inline-flex", alignItems: "center", gap: 10 }}>
+              <GitBranch size={24} color={adminUi.ruby} /> Wholesale Network Sales Tree
+            </h2>
+            <p style={{ margin: "6px 0 0", color: "rgba(21,19,19,.58)" }}>
+              Distributor comes from QR database. 1st scan becomes Tier 2, then the next scan becomes Tier 3.
+            </p>
+          </div>
+          <div style={{ borderRadius: 999, background: "#fff1f4", color: adminUi.ruby, padding: "9px 13px", fontWeight: 950 }}>
+            {salesTrees.length} distributor flows
+          </div>
+        </div>
+        {salesTrees.length ? (
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 14, padding: 18 }}>
+            {salesTrees.slice(0, 8).map((tree) => (
+              <div key={tree.distributorName} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 20, background: "linear-gradient(135deg,#fff,#fff7f8)", padding: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "start" }}>
+                  <div>
+                    <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950, letterSpacing: 1, textTransform: "uppercase", fontSize: 12 }}>Tier 1 Distributor</p>
+                    <h3 style={{ margin: "5px 0 0", fontSize: 22, fontWeight: 950 }}>{tree.distributorName}</h3>
+                  </div>
+                  <span style={{ borderRadius: 999, background: adminUi.deepRuby, color: "white", padding: "7px 10px", fontWeight: 950, fontSize: 12 }}>
+                    {tree.flowCount}/{tree.totalCodes} used
+                  </span>
+                </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
+                  <MiniMetric label="Tier 2 nodes" value={tree.tier2Count} />
+                  <MiniMetric label="Tier 3 nodes" value={tree.tier3Count} />
+                </div>
+                <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
+                  {tree.flows.slice(0, 5).map((flow) => (
+                    <div key={flow.code} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, alignItems: "stretch" }}>
+                      <FlowNode label="1st scan / Tier 2" name={flow.tier2StoreName ?? "Waiting Tier 2"} time={flow.tier2Time} />
+                      <div style={{ display: "grid", placeItems: "center", color: adminUi.ruby, fontWeight: 950 }}>→</div>
+                      <FlowNode label="2nd scan / Tier 3" name={flow.tier3StoreName ?? "Waiting Tier 3"} time={flow.tier3Time} muted={!flow.tier3StoreName} />
+                    </div>
+                  ))}
+                  {tree.flows.length > 5 ? (
+                    <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontSize: 13, fontWeight: 800 }}>+ {tree.flows.length - 5} more QR flows</p>
+                  ) : null}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No wholesale network flow matches this filter yet.</p>
+        )}
+      </section>
 
       <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)" }}>
@@ -190,6 +248,116 @@ function getPeriodStart(period: DashboardPeriod) {
 function isAfterPeriodStart(value: string, start: Date | null) {
   if (!start) return true;
   return new Date(value).getTime() >= start.getTime();
+}
+
+type SalesTreeFlow = {
+  code: string;
+  tier2StoreName: string | null;
+  tier2Time: string | null;
+  tier3StoreName: string | null;
+  tier3Time: string | null;
+};
+
+type SalesTree = {
+  distributorName: string;
+  totalCodes: number;
+  flowCount: number;
+  tier2Count: number;
+  tier3Count: number;
+  flows: SalesTreeFlow[];
+};
+
+function buildSalesTrees({
+  qrCodes,
+  scans,
+  storesById,
+  selectedTier
+}: {
+  qrCodes: QrCodeRecord[];
+  scans: Scan[];
+  storesById: Map<string, Store>;
+  selectedTier: DashboardTierFilter;
+}) {
+  const scansByCode = scans.reduce<Record<string, Scan[]>>((groups, scan) => {
+    const key = scan.scanned_code.trim().toUpperCase();
+    groups[key] = groups[key] ?? [];
+    groups[key].push(scan);
+    return groups;
+  }, {});
+  const trees = new Map<string, SalesTree>();
+
+  for (const qrCode of qrCodes) {
+    const distributorName = qrCode.distributor_name || "Unknown Distributor";
+    const tree = trees.get(distributorName) ?? {
+      distributorName,
+      totalCodes: 0,
+      flowCount: 0,
+      tier2Count: 0,
+      tier3Count: 0,
+      flows: []
+    };
+    const code = qrCode.code.trim().toUpperCase();
+    const codeScans = [...(scansByCode[code] ?? [])].sort((a, b) => new Date(a.scanned_at).getTime() - new Date(b.scanned_at).getTime());
+    const tier2Scan = codeScans.find((scan) => scan.tier_level === "TIER2") ?? null;
+    const tier3Scan = codeScans.find((scan) => scan.tier_level === "TIER3") ?? null;
+
+    tree.totalCodes += 1;
+
+    if (tier2Scan || tier3Scan) {
+      tree.flowCount += 1;
+      if (tier2Scan) tree.tier2Count += 1;
+      if (tier3Scan) tree.tier3Count += 1;
+
+      tree.flows.push({
+        code,
+        tier2StoreName: tier2Scan?.store_id ? storesById.get(tier2Scan.store_id)?.name ?? "Unknown Tier 2 store" : null,
+        tier2Time: tier2Scan?.scanned_at ?? null,
+        tier3StoreName: tier3Scan?.store_id ? storesById.get(tier3Scan.store_id)?.name ?? "Unknown Tier 3 store" : null,
+        tier3Time: tier3Scan?.scanned_at ?? null
+      });
+    }
+
+    trees.set(distributorName, tree);
+  }
+
+  return [...trees.values()]
+    .map((tree) => ({
+      ...tree,
+      flows: tree.flows
+        .filter((flow) => selectedTier === "ALL" || selectedTier === "DISTRIBUTOR" || (selectedTier === "TIER2" && flow.tier2StoreName) || (selectedTier === "TIER3" && flow.tier3StoreName))
+        .sort((a, b) => new Date(b.tier3Time ?? b.tier2Time ?? 0).getTime() - new Date(a.tier3Time ?? a.tier2Time ?? 0).getTime())
+    }))
+    .filter((tree) => tree.flows.length > 0)
+    .sort((a, b) => b.flowCount - a.flowCount || b.tier3Count - a.tier3Count);
+}
+
+function MiniMetric({ label, value }: { label: string; value: number }) {
+  return (
+    <div style={{ borderRadius: 16, background: "rgba(255,255,255,.78)", border: "1px solid rgba(101,0,19,.08)", padding: 12 }}>
+      <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontSize: 12, fontWeight: 900 }}>{label}</p>
+      <p style={{ margin: "4px 0 0", color: adminUi.ruby, fontSize: 24, fontWeight: 950 }}>{value}</p>
+    </div>
+  );
+}
+
+function FlowNode({
+  label,
+  name,
+  time,
+  muted = false
+}: {
+  label: string;
+  name: string;
+  time: string | null;
+  muted?: boolean;
+}) {
+  return (
+    <div style={{ borderRadius: 16, background: muted ? "rgba(21,19,19,.04)" : "white", border: "1px solid rgba(101,0,19,.08)", padding: 12, minWidth: 0 }}>
+      <p style={{ margin: 0, color: muted ? "rgba(21,19,19,.38)" : adminUi.ruby, fontSize: 11, fontWeight: 950, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</p>
+      <p style={{ margin: "5px 0 0", fontWeight: 950, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: muted ? "rgba(21,19,19,.42)" : adminUi.charcoal }}>{name}</p>
+      <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.5)", fontSize: 12 }}>{time ? new Date(time).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" }) : "No scan yet"}</p>
+    </div>
+  );
 }
 
 function Metric({ label, value, tone = "ruby" }: { label: string; value: number; tone?: "ruby" | "gold" | "green" }) {
