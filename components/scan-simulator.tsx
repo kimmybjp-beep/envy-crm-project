@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { BrowserMultiFormatReader, type IScannerControls } from "@zxing/browser";
 import { BarcodeFormat, DecodeHintType } from "@zxing/library";
-import { Camera, ImageUp, ScanLine, Square, X } from "lucide-react";
+import { Camera, ScanLine, Square, X } from "lucide-react";
 import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-panel";
 import type { Store } from "@/lib/types";
 
@@ -11,12 +11,6 @@ type ScanResult = {
   code: string;
   ok: boolean;
   message: string;
-};
-
-type FileReadStats = {
-  selected: number;
-  detected: number;
-  failed: number;
 };
 
 const scannerHints = new Map<DecodeHintType, unknown>([
@@ -38,7 +32,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
   const [statusMessage, setStatusMessage] = useState("");
   const [results, setResults] = useState<ScanResult[]>([]);
   const [isPending, setIsPending] = useState(false);
-  const [fileStats, setFileStats] = useState<FileReadStats>({ selected: 0, detected: 0, failed: 0 });
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStatus, setCameraStatus] = useState("ยังไม่ได้เปิดกล้อง");
   const [manualCode, setManualCode] = useState("");
@@ -61,43 +54,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
     }
 
     return readerRef.current;
-  }
-
-  async function decodeSavedImages(files: FileList | null) {
-    if (!files?.length) return;
-
-    const reader = getReader();
-    const fileArray = Array.from(files);
-    const detectedCodes: string[] = [];
-    let failedCount = 0;
-
-    setFileStats({ selected: fileArray.length, detected: 0, failed: 0 });
-    setStatusMessage(`เลือกแล้ว ${fileArray.length} ไฟล์ กำลังอ่าน QR...`);
-
-    for (const file of fileArray) {
-      const imageUrl = URL.createObjectURL(file);
-
-      try {
-        const result = await reader.decodeFromImageUrl(imageUrl);
-        const code = normalizeCode(result.getText());
-
-        if (code) {
-          detectedCodes.push(code);
-        } else {
-          failedCount += 1;
-        }
-      } catch {
-        failedCount += 1;
-      } finally {
-        URL.revokeObjectURL(imageUrl);
-      }
-    }
-
-    addCodes(detectedCodes);
-    setFileStats({ selected: fileArray.length, detected: detectedCodes.length, failed: failedCount });
-    setStatusMessage(
-      `เลือกแล้ว ${fileArray.length} ไฟล์ อ่านได้ ${detectedCodes.length} ไฟล์${failedCount ? ` อ่านไม่ได้ ${failedCount} ไฟล์` : ""}`
-    );
   }
 
   async function startCamera() {
@@ -144,9 +100,7 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
       setCameraStatus("เปิดกล้องแล้ว เล็ง QR ให้อยู่กลางกรอบ");
     } catch (error) {
       setCameraActive(false);
-      setCameraStatus(
-        `เปิดกล้องไม่สำเร็จ: ${error instanceof Error ? error.message : String(error)}`
-      );
+      setCameraStatus(`เปิดกล้องไม่สำเร็จ: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
 
@@ -220,7 +174,7 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
         <p className="text-sm font-semibold uppercase tracking-[0.22em] text-champagne">Mobile Scanner</p>
         <h2 className="mt-2 text-2xl font-semibold">Apple ENVY QR / Barcode</h2>
         <p className="mt-2 text-sm text-white/65">
-          เลือกรูป QR จากมือถือหรือเปิด Live Camera ระบบจะอ่าน QR แล้วเพิ่มเข้าคิวก่อนกดบันทึก
+          เปิด Live Camera เพื่อสแกน QR แล้วกดบันทึกแต้มเข้าระบบ
         </p>
       </div>
 
@@ -276,42 +230,8 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
           </p>
         </div>
 
-        <div className="rounded-lg border border-dashed border-ruby-900/25 bg-ruby-50/40 p-4">
-          <div className="mb-3 flex items-center gap-2 font-semibold text-charcoal">
-            <ImageUp size={18} className="text-ruby-900" />
-            เลือกรูป QR จากเครื่อง
-          </div>
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            onChange={(event) => {
-              void decodeSavedImages(event.target.files);
-              event.currentTarget.value = "";
-            }}
-            className="w-full rounded-lg border border-ruby-900/15 bg-white px-4 py-3 text-sm"
-          />
-          <div className="mt-3 grid grid-cols-3 gap-2 text-center text-xs font-black">
-            <div className="rounded-lg bg-white px-2 py-3 text-charcoal ring-1 ring-ruby-900/10">
-              <p className="text-lg text-ruby-900">{fileStats.selected}</p>
-              <p>ไฟล์ที่เลือก</p>
-            </div>
-            <div className="rounded-lg bg-white px-2 py-3 text-charcoal ring-1 ring-ruby-900/10">
-              <p className="text-lg text-emerald-700">{fileStats.detected}</p>
-              <p>อ่านได้</p>
-            </div>
-            <div className="rounded-lg bg-white px-2 py-3 text-charcoal ring-1 ring-ruby-900/10">
-              <p className="text-lg text-ruby-900">{fileStats.failed}</p>
-              <p>อ่านไม่ได้</p>
-            </div>
-          </div>
-          <p className="mt-2 text-xs text-charcoal/60">
-            เลือกได้หลายรูปพร้อมกัน ถ้าบางรูปอ่านไม่ได้ ระบบจะบันทึกเฉพาะ QR ที่อ่านได้
-          </p>
-        </div>
-
         <div className="rounded-lg border border-ruby-900/10 bg-white p-4">
-          <p className="mb-3 font-semibold text-charcoal">กรอกรหัสสำรอง ถ้ากล้อง/รูปอ่านไม่ได้</p>
+          <p className="mb-3 font-semibold text-charcoal">กรอกรหัสสำรอง ถ้ากล้องอ่านไม่ได้</p>
           <div className="grid grid-cols-[1fr_auto] gap-2">
             <input
               value={manualCode}
