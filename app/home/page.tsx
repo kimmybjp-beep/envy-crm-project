@@ -2,6 +2,7 @@ import Link from "next/link";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { Gift, Megaphone, ScanLine, Star, Store as StoreIcon } from "lucide-react";
+import { AdminMessagePopup } from "@/components/admin-message-popup";
 import { HeroCard, SalesShell } from "@/components/sales-shell";
 import { getSupabaseClient } from "@/lib/supabase";
 import type { AdminMessage, Store } from "@/lib/types";
@@ -30,6 +31,7 @@ export default async function HomePage() {
 
   return (
     <SalesShell title="ENVY Reward Home" subtitle="Store reward dashboard for approved Apple ENVY outlets">
+      <AdminMessagePopup message={adminMessage ?? null} />
       <div className="space-y-5">
         <HeroCard>
           <p className="inline-flex rounded-full bg-white/12 px-4 py-2 text-xs font-black uppercase tracking-[0.16em]">Approved Store</p>

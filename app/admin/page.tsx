@@ -53,19 +53,29 @@ export default async function AdminPage({
         </section>
 
         <section style={{ ...adminUi.panel, padding: 22 }}>
-          <form action={publishAdminMessageAction} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 12, alignItems: "end" }}>
+          <form action={publishAdminMessageAction} style={{ display: "grid", gap: 12 }}>
             <label>
               <span style={{ display: "block", marginBottom: 7, fontSize: 13, color: "rgba(21,19,19,.68)", fontWeight: 900 }}>
-                Admin broadcast message
+                Store Login Popup Message
               </span>
-              <input
+              <p style={{ margin: "0 0 10px", color: "rgba(21,19,19,.58)", fontSize: 13 }}>
+                ข้อความนี้จะเด้งเป็น popup หลังร้านค้า login เข้า Home และยังโชว์ในแถบประกาศด้านล่างด้วย
+              </p>
+              <textarea
                 name="message"
                 required
+                rows={3}
+                maxLength={240}
                 placeholder="เช่น โปรโมชั่น ENVY ประจำสัปดาห์..."
-                style={adminUi.input}
+                style={{ ...adminUi.input, minHeight: 92, resize: "vertical" }}
               />
             </label>
-            <button style={adminUi.button}>Publish</button>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+              <p style={{ margin: 0, color: "rgba(21,19,19,.5)", fontSize: 12, fontWeight: 800 }}>
+                จำกัด 240 ตัวอักษร เพื่อให้ popup บนมือถืออ่านง่าย
+              </p>
+              <button style={adminUi.button}>Publish Popup</button>
+            </div>
           </form>
         </section>
       </div>
