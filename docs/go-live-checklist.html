@@ -1,0 +1,472 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ENVY Reward CRM - Go Live Checklist</title>
+  <style>
+    @page { size: A4; margin: 10mm; }
+
+    :root {
+      --ruby: #c2002f;
+      --deep: #5a0012;
+      --wine: #8f001f;
+      --ink: #171012;
+      --muted: #6f6265;
+      --line: #efd0d7;
+      --pink: #fff1f4;
+      --gold: #d8b56d;
+      --green: #087f5b;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background: #f3dce2;
+      color: var(--ink);
+      font-family: Arial, "Noto Sans Thai", Tahoma, sans-serif;
+    }
+
+    .sheet {
+      width: min(1120px, 100%);
+      margin: 0 auto;
+      padding: 24px;
+    }
+
+    .hero {
+      position: relative;
+      overflow: hidden;
+      border-radius: 28px;
+      padding: 34px;
+      background:
+        radial-gradient(circle at 82% 26%, rgba(255,255,255,.4), transparent 7%),
+        radial-gradient(circle at 88% 36%, #f31d45, #99001f 45%, #4b000f 72%),
+        linear-gradient(135deg, var(--deep), var(--ruby));
+      color: #fff;
+      box-shadow: 0 28px 70px rgba(115, 0, 22, .18);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      right: 90px;
+      bottom: -40px;
+      width: 360px;
+      height: 110px;
+      transform: rotate(-7deg);
+      background: rgba(255,255,255,.08);
+      border-radius: 999px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border: 1px solid rgba(255,255,255,.24);
+      border-radius: 999px;
+      padding: 8px 14px;
+      background: rgba(255,255,255,.12);
+      color: var(--gold);
+      font-size: 12px;
+      font-weight: 900;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      width: min(720px, 100%);
+      margin: 16px 0 10px;
+      font-size: clamp(36px, 6vw, 72px);
+      line-height: .9;
+      letter-spacing: -.045em;
+    }
+
+    .lead {
+      width: min(700px, 100%);
+      margin: 0;
+      color: rgba(255,255,255,.86);
+      font-size: 18px;
+      line-height: 1.5;
+      font-weight: 700;
+    }
+
+    .summary {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 14px;
+      margin: 18px 0;
+    }
+
+    .summary-card,
+    .card,
+    .flow,
+    .signoff {
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      background: rgba(255,255,255,.88);
+      box-shadow: 0 18px 48px rgba(115,0,22,.08);
+    }
+
+    .summary-card {
+      min-height: 112px;
+      padding: 18px;
+    }
+
+    .summary-card b {
+      display: block;
+      color: var(--ruby);
+      font-size: 34px;
+      line-height: 1;
+    }
+
+    .summary-card span {
+      display: block;
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .card {
+      overflow: hidden;
+    }
+
+    .card-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 18px 20px;
+      border-bottom: 1px solid var(--line);
+      background: linear-gradient(180deg, #fff, #fff7f9);
+    }
+
+    .card-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      color: var(--wine);
+      font-size: 19px;
+      line-height: 1.2;
+      font-weight: 950;
+    }
+
+    .icon {
+      display: grid;
+      place-items: center;
+      width: 40px;
+      height: 40px;
+      border-radius: 14px;
+      background: var(--ruby);
+      color: #fff;
+      font-weight: 950;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 7px 10px;
+      background: #fff0c7;
+      color: #7b4d00;
+      font-size: 11px;
+      font-weight: 950;
+      text-transform: uppercase;
+      white-space: nowrap;
+    }
+
+    .badge.critical {
+      background: #ffe3e8;
+      color: var(--ruby);
+    }
+
+    .checks {
+      display: grid;
+      gap: 10px;
+      padding: 18px 20px 20px;
+    }
+
+    .check {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 10px;
+      align-items: start;
+      color: #2a2022;
+      font-size: 14px;
+      line-height: 1.45;
+      font-weight: 700;
+    }
+
+    .box {
+      width: 20px;
+      height: 20px;
+      margin-top: 1px;
+      border: 2px solid var(--ruby);
+      border-radius: 6px;
+      background: #fff;
+    }
+
+    .mini-fields {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1.5fr;
+      gap: 8px;
+      padding-top: 8px;
+      border-top: 1px dashed var(--line);
+    }
+
+    .field {
+      min-height: 42px;
+      border: 1px dashed #deb3bc;
+      border-radius: 12px;
+      padding: 8px 10px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .flow {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .flow h2,
+    .signoff h2 {
+      margin: 0 0 14px;
+      color: var(--wine);
+      font-size: 25px;
+      line-height: 1.1;
+    }
+
+    .flowline {
+      display: grid;
+      grid-template-columns: repeat(8, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .flow-step {
+      position: relative;
+      min-height: 96px;
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      padding: 12px;
+      background: linear-gradient(180deg, #fff, #fff7f9);
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.3;
+    }
+
+    .flow-step b {
+      display: grid;
+      place-items: center;
+      width: 30px;
+      height: 30px;
+      margin-bottom: 8px;
+      border-radius: 11px;
+      background: var(--ruby);
+      color: #fff;
+    }
+
+    .signoff {
+      margin-top: 18px;
+      padding: 22px;
+    }
+
+    .sign-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .sign-box {
+      min-height: 96px;
+      border: 1px dashed #d9a7b2;
+      border-radius: 16px;
+      padding: 12px;
+      color: var(--muted);
+      font-weight: 800;
+    }
+
+    @media (max-width: 900px) {
+      .sheet { padding: 12px; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .grid { grid-template-columns: 1fr; }
+      .flowline { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .mini-fields { grid-template-columns: 1fr; }
+    }
+
+    @media print {
+      body { background: #fff; }
+      .sheet { width: 100%; padding: 0; }
+      .hero, .summary-card, .card, .flow, .signoff { box-shadow: none; }
+      .card, .flow, .signoff { break-inside: avoid; }
+    }
+  </style>
+</head>
+<body>
+  <main class="sheet">
+    <section class="hero">
+      <div class="eyebrow">ENVY Reward CRM · Go Live Control</div>
+      <h1>Checklist ก่อน Go Live</h1>
+      <p class="lead">เอกสารนี้ให้ทีมงานใช้ติ๊กตรวจระบบก่อนเปิดใช้งานจริง ครอบคลุมตั้งแต่ฐานข้อมูล, สมัครร้าน, สแกน QR, แลกรางวัล, Dashboard, LINE Bot และ Export รายงาน</p>
+    </section>
+
+    <section class="summary">
+      <div class="summary-card"><b>12</b><span>หมวดที่ต้องตรวจ</span></div>
+      <div class="summary-card"><b>1</b><span>รอบซ้อมใหญ่เต็มระบบ</span></div>
+      <div class="summary-card"><b>0</b><span>QR ซ้ำใน Tier เดิม</span></div>
+      <div class="summary-card"><b>100%</b><span>มือถือทีมงานต้องลองจริง</span></div>
+    </section>
+
+    <section class="grid">
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">DB</span>Database & Supabase</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>ตารางหลักพร้อมใช้งาน: stores, scans, qr_batches, qr_codes, rewards, redemptions, fraud_alerts</span></div>
+          <div class="check"><span class="box"></span><span>Unique constraint กันสแกนซ้ำใน tier เดิมทำงานจริง</span></div>
+          <div class="check"><span class="box"></span><span>Storage bucket รูปหน้าร้าน upload/read ได้</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">01</span>Store Registration</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>สมัครร้านใหม่ได้ โดยไม่มีช่อง Tier ให้ร้านเห็น</span></div>
+          <div class="check"><span class="box"></span><span>ถ่ายรูปหน้าร้านจากมือถือได้ และมีข้อความ “กรุณาถ่ายรูปหน้าร้านที่มีป้ายชื่อร้าน”</span></div>
+          <div class="check"><span class="box"></span><span>หลังสมัครขึ้น popup: “ลงทะเบียนร้านเรียบร้อย โปรดรอ อนุมัติ”</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">02</span>Admin Approval</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>หน้า Admin เห็นข้อมูลร้าน, เบอร์, สถานะ, รูปหน้าร้าน preview และ action ชัดเจน</span></div>
+          <div class="check"><span class="box"></span><span>Approve / Reject ใช้งานได้ และร้านที่ยังไม่อนุมัติ Login/Scan ไม่ได้</span></div>
+          <div class="check"><span class="box"></span><span>Back Office reset password ให้ร้านได้</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">03</span>Store Login & Home</h2><span class="badge">User Flow</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>ร้าน Login ด้วยเบอร์ + password ได้ เฉพาะร้าน approved</span></div>
+          <div class="check"><span class="box"></span><span>หน้า Home แสดงชื่อร้าน, แต้มสะสม, ปุ่ม Scan, ปุ่ม Rewards และข้อความจาก Admin</span></div>
+          <div class="check"><span class="box"></span><span>ไม่มีข้อความ Tier ใน UI ร้านค้า</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">QR</span>QR Generator</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>กรอก Distributor + จำนวน แล้วสร้าง QR unique 18 หลักได้</span></div>
+          <div class="check"><span class="box"></span><span>ข้อมูล batch และ code ถูกบันทึกใน Supabase</span></div>
+          <div class="check"><span class="box"></span><span>ดาวน์โหลด ZIP รูป QR ได้ และ QR อ่านด้วยมือถือจริงได้</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">04</span>Live Camera Scan</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>Live camera scan ใช้งานบนมือถือจริง: Android Chrome และ iPhone Safari/Chrome</span></div>
+          <div class="check"><span class="box"></span><span>สแกน QR ใหม่แล้วแต้มเพิ่ม และบันทึก scan สำเร็จ</span></div>
+          <div class="check"><span class="box"></span><span>สแกนซ้ำในร้าน/tier เดิมแล้วระบบไม่ให้ผ่าน พร้อม log fraud alert ให้ Admin</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">05</span>Rewards & Fulfillment</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>Admin เพิ่ม/แก้ reward ได้ และร้านเห็นรายการรางวัล</span></div>
+          <div class="check"><span class="box"></span><span>ร้านแลกรางวัลได้เมื่อแต้มพอ และแต้มถูกหักถูกต้อง</span></div>
+          <div class="check"><span class="box"></span><span>Admin เห็นรายการค้างจ่าย และกดทำจ่าย/จัดส่งแล้วได้</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">06</span>Dashboard & Sales Tree</h2><span class="badge">Ops</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>Dashboard filter by day/week/month/tier ได้</span></div>
+          <div class="check"><span class="box"></span><span>เห็น Total Rewards Claimed, Pending Fulfillment, Successful Fulfills</span></div>
+          <div class="check"><span class="box"></span><span>Sales Tree แสดง flow Distributor → Tier 2 → Tier 3 จากข้อมูล scan จริง</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">LN</span>LINE Bot & Summary</h2><span class="badge">Ops</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>คำสั่ง LINE ใช้งานได้: สรุป, summary, groupid, ขอรหัสกลุ่มหน่อย</span></div>
+          <div class="check"><span class="box"></span><span>Bot ไม่ spam group เมื่อคนคุยเรื่องอื่น</span></div>
+          <div class="check"><span class="box"></span><span>ลิงก์จาก LINE เปิด external browser ด้วย openExternalBrowser=1</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">CSV</span>Export & Raw Data</h2><span class="badge">Report</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>Admin Database page เห็น raw data ที่จำเป็น</span></div>
+          <div class="check"><span class="box"></span><span>Export CSV เปิดใน Excel/Google Sheets แล้วหัวตารางไม่เพี้ยน</span></div>
+          <div class="check"><span class="box"></span><span>ข้อมูล scan/reward/store ตรงกับ Supabase</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">UI</span>Mobile QA</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>ทดสอบจอ iPhone/Android จริง: Register, Login, Scan, Rewards</span></div>
+          <div class="check"><span class="box"></span><span>ไม่มีข้อความทับกัน, ปุ่มไม่ตกขอบ, bottom nav ไม่บังปุ่มหลัก</span></div>
+          <div class="check"><span class="box"></span><span>เปิดจาก LINE แล้วไม่ติด Google OAuth blocked / disallowed useragent</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+
+      <article class="card">
+        <div class="card-head"><h2 class="card-title"><span class="icon">ENV</span>Production Env</h2><span class="badge critical">Critical</span></div>
+        <div class="checks">
+          <div class="check"><span class="box"></span><span>Vercel env ครบ: Supabase URL/Anon/Service Role, LINE token/secret/group id, Gemini key</span></div>
+          <div class="check"><span class="box"></span><span>Build ล่าสุดบน Vercel เป็น READY และ URL production ถูกต้อง</span></div>
+          <div class="check"><span class="box"></span><span>ทดสอบด้วยข้อมูลจริง 1 ชุดก่อนประกาศใช้งาน</span></div>
+          <div class="mini-fields"><div class="field">Owner</div><div class="field">Result</div><div class="field">Notes</div></div>
+        </div>
+      </article>
+    </section>
+
+    <section class="flow">
+      <h2>Full Rehearsal Flow: ซ้อมใหญ่ 1 รอบก่อนเปิดจริง</h2>
+      <div class="flowline">
+        <div class="flow-step"><b>1</b>Register ร้านใหม่ + ถ่ายรูปหน้าร้าน</div>
+        <div class="flow-step"><b>2</b>Admin ตรวจรูป และ Approve</div>
+        <div class="flow-step"><b>3</b>ร้าน Login เข้า Home</div>
+        <div class="flow-step"><b>4</b>Admin Generate QR batch</div>
+        <div class="flow-step"><b>5</b>ร้านสแกน QR ด้วย Live Camera</div>
+        <div class="flow-step"><b>6</b>ตรวจแต้ม + กัน QR ซ้ำ</div>
+        <div class="flow-step"><b>7</b>ร้านแลกรางวัล / Admin ทำจ่าย</div>
+        <div class="flow-step"><b>8</b>Dashboard + LINE + Export ถูกต้อง</div>
+      </div>
+    </section>
+
+    <section class="signoff">
+      <h2>Go / No-Go Sign Off</h2>
+      <div class="sign-grid">
+        <div class="sign-box">Back Office Lead<br><br>ชื่อ / วันที่:</div>
+        <div class="sign-box">Field Sales Lead<br><br>ชื่อ / วันที่:</div>
+        <div class="sign-box">System Owner<br><br>ชื่อ / วันที่:</div>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
