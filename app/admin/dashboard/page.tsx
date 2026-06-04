@@ -107,37 +107,7 @@ export default async function AdminDashboardPage({
           </div>
         </div>
         {salesTrees.length ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(320px,1fr))", gap: 14, padding: 18 }}>
-            {salesTrees.slice(0, 8).map((tree) => (
-              <div key={tree.distributorName} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 20, background: "linear-gradient(135deg,#fff,#fff7f8)", padding: 16 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "start" }}>
-                  <div>
-                    <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950, letterSpacing: 1, textTransform: "uppercase", fontSize: 12 }}>Tier 1 Distributor</p>
-                    <h3 style={{ margin: "5px 0 0", fontSize: 22, fontWeight: 950 }}>{tree.distributorName}</h3>
-                  </div>
-                  <span style={{ borderRadius: 999, background: adminUi.deepRuby, color: "white", padding: "7px 10px", fontWeight: 950, fontSize: 12 }}>
-                    {tree.flowCount}/{tree.totalCodes} used
-                  </span>
-                </div>
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 14 }}>
-                  <MiniMetric label="Tier 2 nodes" value={tree.tier2Count} />
-                  <MiniMetric label="Tier 3 nodes" value={tree.tier3Count} />
-                </div>
-                <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
-                  {tree.flows.slice(0, 5).map((flow) => (
-                    <div key={flow.code} style={{ display: "grid", gridTemplateColumns: "1fr auto 1fr", gap: 8, alignItems: "stretch" }}>
-                      <FlowNode label="1st scan / Tier 2" name={flow.tier2StoreName ?? "Waiting Tier 2"} time={flow.tier2Time} />
-                      <div style={{ display: "grid", placeItems: "center", color: adminUi.ruby, fontWeight: 950 }}>→</div>
-                      <FlowNode label="2nd scan / Tier 3" name={flow.tier3StoreName ?? "Waiting Tier 3"} time={flow.tier3Time} muted={!flow.tier3StoreName} />
-                    </div>
-                  ))}
-                  {tree.flows.length > 5 ? (
-                    <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontSize: 13, fontWeight: 800 }}>+ {tree.flows.length - 5} more QR flows</p>
-                  ) : null}
-                </div>
-              </div>
-            ))}
-          </div>
+          <SalesNetworkGraph trees={salesTrees} />
         ) : (
           <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No wholesale network flow matches this filter yet.</p>
         )}
@@ -331,33 +301,193 @@ function buildSalesTrees({
     .sort((a, b) => b.flowCount - a.flowCount || b.tier3Count - a.tier3Count);
 }
 
-function MiniMetric({ label, value }: { label: string; value: number }) {
+type GraphNode = {
+  id: string;
+  label: string;
+  kind: "distributor" | "tier2" | "tier3";
+  x: number;
+  y: number;
+};
+
+type GraphLink = {
+  sourceId: string;
+  targetId: string;
+};
+
+function SalesNetworkGraph({ trees }: { trees: SalesTree[] }) {
+  const graph = buildNetworkGraph(trees);
+
   return (
-    <div style={{ borderRadius: 16, background: "rgba(255,255,255,.78)", border: "1px solid rgba(101,0,19,.08)", padding: 12 }}>
-      <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontSize: 12, fontWeight: 900 }}>{label}</p>
-      <p style={{ margin: "4px 0 0", color: adminUi.ruby, fontSize: 24, fontWeight: 950 }}>{value}</p>
+    <div style={{ padding: 18 }}>
+      <div style={{
+        borderRadius: 24,
+        background: "radial-gradient(circle at 50% 0%, rgba(169,0,31,.42), rgba(18,18,18,.96) 38%, #111 100%)",
+        border: "1px solid rgba(255,255,255,.08)",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,.04), 0 24px 70px rgba(101,0,19,.18)",
+        overflow: "hidden"
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: "16px 18px", color: "white", borderBottom: "1px solid rgba(255,255,255,.08)", flexWrap: "wrap" }}>
+          <div>
+            <p style={{ margin: 0, color: "#f8d98a", fontSize: 12, fontWeight: 950, letterSpacing: 1.5, textTransform: "uppercase" }}>Network Map</p>
+            <p style={{ margin: "5px 0 0", color: "rgba(255,255,255,.68)", fontSize: 13 }}>Live scan paths grouped by QR distributor source</p>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <LegendDot color="#f8d98a" label="Distributor" />
+            <LegendDot color="#ffffff" label="Tier 2" />
+            <LegendDot color="#ff4b6a" label="Tier 3" />
+          </div>
+        </div>
+        <svg viewBox="0 0 1100 560" role="img" aria-label="Wholesale network graph" style={{ display: "block", width: "100%", minHeight: 360 }}>
+          <defs>
+            <filter id="node-glow" x="-80%" y="-80%" width="260%" height="260%">
+              <feGaussianBlur stdDeviation="4" result="coloredBlur" />
+              <feMerge>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
+          {graph.links.map((link) => {
+            const source = graph.nodeMap.get(link.sourceId);
+            const target = graph.nodeMap.get(link.targetId);
+            if (!source || !target) return null;
+
+            const midY = (source.y + target.y) / 2;
+            return (
+              <path
+                key={`${link.sourceId}-${link.targetId}`}
+                d={`M ${source.x} ${source.y} C ${source.x} ${midY}, ${target.x} ${midY}, ${target.x} ${target.y}`}
+                fill="none"
+                stroke={target.kind === "tier3" ? "rgba(255,75,106,.38)" : "rgba(255,255,255,.22)"}
+                strokeWidth={target.kind === "tier3" ? 1.35 : 1.1}
+              />
+            );
+          })}
+          {graph.nodes.map((node) => (
+            <g key={node.id} transform={`translate(${node.x} ${node.y})`}>
+              <circle
+                r={node.kind === "distributor" ? 7 : node.kind === "tier2" ? 5.5 : 4.5}
+                fill={node.kind === "distributor" ? "#f8d98a" : node.kind === "tier2" ? "#f4f4f4" : "#ff4b6a"}
+                opacity={node.kind === "tier3" ? 0.92 : 1}
+                filter="url(#node-glow)"
+              />
+              <text
+                x={node.kind === "tier3" ? 8 : 9}
+                y={node.kind === "distributor" ? -9 : 4}
+                fill={node.kind === "distributor" ? "#f8d98a" : "rgba(255,255,255,.78)"}
+                fontSize={node.kind === "distributor" ? 13 : 10}
+                fontWeight={node.kind === "distributor" ? 900 : 650}
+                style={{ pointerEvents: "none" }}
+              >
+                {shortLabel(node.label, node.kind === "distributor" ? 20 : 16)}
+              </text>
+            </g>
+          ))}
+        </svg>
+      </div>
     </div>
   );
 }
 
-function FlowNode({
-  label,
-  name,
-  time,
-  muted = false
-}: {
-  label: string;
-  name: string;
-  time: string | null;
-  muted?: boolean;
-}) {
+function LegendDot({ color, label }: { color: string; label: string }) {
   return (
-    <div style={{ borderRadius: 16, background: muted ? "rgba(21,19,19,.04)" : "white", border: "1px solid rgba(101,0,19,.08)", padding: 12, minWidth: 0 }}>
-      <p style={{ margin: 0, color: muted ? "rgba(21,19,19,.38)" : adminUi.ruby, fontSize: 11, fontWeight: 950, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</p>
-      <p style={{ margin: "5px 0 0", fontWeight: 950, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", color: muted ? "rgba(21,19,19,.42)" : adminUi.charcoal }}>{name}</p>
-      <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.5)", fontSize: 12 }}>{time ? new Date(time).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" }) : "No scan yet"}</p>
-    </div>
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 7, color: "rgba(255,255,255,.76)", fontSize: 12, fontWeight: 850 }}>
+      <span style={{ width: 9, height: 9, borderRadius: 999, background: color, boxShadow: `0 0 18px ${color}` }} />
+      {label}
+    </span>
   );
+}
+
+function buildNetworkGraph(trees: SalesTree[]) {
+  const nodes: GraphNode[] = [];
+  const links: GraphLink[] = [];
+  const nodeMap = new Map<string, GraphNode>();
+  const tier2Parents = new Map<string, string>();
+  const distributorTrees = trees.slice(0, 12);
+
+  distributorTrees.forEach((tree, distributorIndex) => {
+    const distributorX = spreadPosition(distributorIndex, distributorTrees.length, 90, 1010);
+    const distributorId = `d:${tree.distributorName}`;
+    addGraphNode(nodeMap, nodes, {
+      id: distributorId,
+      label: tree.distributorName,
+      kind: "distributor",
+      x: distributorX,
+      y: 48 + (distributorIndex % 2) * 26
+    });
+
+    const tier2Names = uniqueValues(tree.flows.map((flow) => flow.tier2StoreName).filter(Boolean) as string[]).slice(0, 12);
+    tier2Names.forEach((tier2Name, tier2Index) => {
+      const tier2Id = `t2:${tree.distributorName}:${tier2Name}`;
+      const tier2X = distributorX + spreadOffset(tier2Index, tier2Names.length, 150);
+      const tier2Y = 195 + ((tier2Index + distributorIndex) % 3) * 34;
+      addGraphNode(nodeMap, nodes, {
+        id: tier2Id,
+        label: tier2Name,
+        kind: "tier2",
+        x: clamp(tier2X, 45, 1055),
+        y: tier2Y
+      });
+      addGraphLink(links, distributorId, tier2Id);
+      tier2Parents.set(tier2Name, tier2Id);
+    });
+
+    tree.flows
+      .filter((flow) => flow.tier2StoreName && flow.tier3StoreName)
+      .slice(0, 48)
+      .forEach((flow, flowIndex) => {
+        const tier2Id = tier2Parents.get(flow.tier2StoreName ?? "");
+        if (!tier2Id || !flow.tier3StoreName) return;
+
+        const parent = nodeMap.get(tier2Id);
+        const tier3Id = `t3:${tree.distributorName}:${flow.tier2StoreName}:${flow.tier3StoreName}:${flowIndex}`;
+        const tier3X = (parent?.x ?? distributorX) + spreadOffset(flowIndex % 7, 7, 120);
+        const tier3Y = 370 + (flowIndex % 4) * 38;
+        addGraphNode(nodeMap, nodes, {
+          id: tier3Id,
+          label: flow.tier3StoreName,
+          kind: "tier3",
+          x: clamp(tier3X, 35, 1065),
+          y: tier3Y
+        });
+        addGraphLink(links, tier2Id, tier3Id);
+      });
+  });
+
+  return { nodes, links, nodeMap };
+}
+
+function addGraphNode(nodeMap: Map<string, GraphNode>, nodes: GraphNode[], node: GraphNode) {
+  if (nodeMap.has(node.id)) return;
+  nodeMap.set(node.id, node);
+  nodes.push(node);
+}
+
+function addGraphLink(links: GraphLink[], sourceId: string, targetId: string) {
+  if (links.some((link) => link.sourceId === sourceId && link.targetId === targetId)) return;
+  links.push({ sourceId, targetId });
+}
+
+function spreadPosition(index: number, count: number, min: number, max: number) {
+  if (count <= 1) return (min + max) / 2;
+  return min + ((max - min) * index) / (count - 1);
+}
+
+function spreadOffset(index: number, count: number, width: number) {
+  if (count <= 1) return 0;
+  return -width / 2 + (width * index) / (count - 1);
+}
+
+function uniqueValues(values: string[]) {
+  return Array.from(new Set(values));
+}
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+function shortLabel(value: string, maxLength: number) {
+  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
 }
 
 function Metric({ label, value, tone = "ruby" }: { label: string; value: number; tone?: "ruby" | "gold" | "green" }) {
