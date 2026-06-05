@@ -5,11 +5,23 @@
 truncate table
   reward_redemptions,
   scans,
+  scan_alerts,
   qr_codes,
   qr_batches,
+  qr_code_counters,
   admin_messages,
   rewards,
   stores
 restart identity cascade;
 
-select 'envy_test_data_reset_complete' as status;
+select
+  'envy_test_data_reset_complete' as status,
+  (select count(*) from stores) as stores,
+  (select count(*) from scans) as scans,
+  (select count(*) from scan_alerts) as scan_alerts,
+  (select count(*) from qr_codes) as qr_codes,
+  (select count(*) from qr_batches) as qr_batches,
+  (select count(*) from qr_code_counters) as qr_code_counters,
+  (select count(*) from admin_messages) as admin_messages,
+  (select count(*) from rewards) as rewards,
+  (select count(*) from reward_redemptions) as reward_redemptions;

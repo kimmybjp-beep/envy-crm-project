@@ -6,7 +6,7 @@ import { AdminShell, adminUi } from "@/components/admin-shell";
 import { DashboardFilters, type DashboardPeriod, type DashboardTierFilter } from "@/components/dashboard-filters";
 import { MessageBanner } from "@/components/message-banner";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { QrCodeRecord, Reward, RewardRedemption, Scan, ScanAlert, Store, StoreTier } from "@/lib/types";
+import type { QrBatch, QrCodeRecord, Reward, RewardRedemption, Scan, ScanAlert, Store, StoreTier } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -22,13 +22,14 @@ export default async function AdminDashboardPage({
   const selectedTier = normalizeTier(rawTier);
   const periodStart = getPeriodStart(selectedPeriod);
   const supabase = getSupabaseAdminClient();
-  const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }, { data: scanAlerts }, { data: qrCodes }] = await Promise.all([
+  const [{ data: stores }, { data: scans }, { data: redemptions }, { data: rewards }, { data: scanAlerts }, { data: qrCodes }, { data: qrBatches }] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
     supabase.from("scans").select("*").order("scanned_at", { ascending: false }).returns<Scan[]>(),
     supabase.from("reward_redemptions").select("*").order("created_at", { ascending: false }).returns<RewardRedemption[]>(),
     supabase.from("rewards").select("*").returns<Reward[]>(),
     supabase.from("scan_alerts").select("*").neq("status", "RESOLVED").returns<ScanAlert[]>(),
-    supabase.from("qr_codes").select("*").returns<QrCodeRecord[]>()
+    supabase.from("qr_codes").select("*").returns<QrCodeRecord[]>(),
+    supabase.from("qr_batches").select("*").order("created_at", { ascending: false }).returns<QrBatch[]>()
   ]);
 
   const storeRows = stores ?? [];
@@ -38,6 +39,12 @@ export default async function AdminDashboardPage({
   const storesById = new Map(storeRows.map((store) => [store.id, store]));
   const rewardsById = new Map((rewards ?? []).map((reward) => [reward.id, reward]));
   const storeMatchesTier = (store: Store | undefined) => selectedTier === "ALL" || store?.tier === selectedTier;
+  const qrMatchesTier = (qrCode: QrCodeRecord) => {
+    if (selectedTier === "ALL" || selectedTier === "DISTRIBUTOR") return true;
+    const claimedStore = qrCode.claimed_by_outlet_id ? storesById.get(qrCode.claimed_by_outlet_id) : undefined;
+    return claimedStore?.tier === selectedTier;
+  };
+
   const filteredStores = storeRows.filter((store) => storeMatchesTier(store));
   const filteredScans = scanRows.filter((scan) => {
     const store = scan.store_id ? storesById.get(scan.store_id) : undefined;
@@ -58,17 +65,20 @@ export default async function AdminDashboardPage({
     return counts;
   }, {});
   const pointsFromFilteredStores = filteredStores.reduce((sum, store) => sum + store.points, 0);
-  const salesTrees = buildSalesTrees({
-    qrCodes: qrCodes ?? [],
-    scans: filteredScans,
-    storesById,
-    selectedTier
-  });
+  const qrRows = (qrCodes ?? []).filter((qrCode) => isAfterPeriodStart(qrCode.created_at, periodStart) && qrMatchesTier(qrCode));
+  const qrClaimRows = qrRows.filter(isQrClaimed);
+  const qrUnclaimedRows = qrRows.filter((qrCode) => !isQrClaimed(qrCode) && qrCode.status !== "void");
+  const qrClaimRate = qrRows.length ? Math.round((qrClaimRows.length / qrRows.length) * 100) : 0;
+  const qrPointsClaimed = qrClaimRows.reduce((sum, qrCode) => sum + (qrCode.point_value ?? 0), 0);
+  const distributorSummaries = buildQrDistributorSummaries(qrRows, storesById);
+  const sizeSummaries = buildQrSizeSummaries(qrRows);
+  const qrNetwork = buildQrNetwork({ qrCodes: qrRows, storesById });
 
   return (
-    <AdminShell title="Interactive Dashboard" subtitle="Track store activity, points, and scans by tier">
+    <AdminShell title="Interactive Dashboard" subtitle="Track QR issue, claims, points, rewards, and store activity">
       <MessageBanner message={message} />
       <DashboardFilters period={selectedPeriod} tier={selectedTier} />
+
       <section style={{ ...adminUi.panel, padding: 20, marginBottom: 18, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16, flexWrap: "wrap" }}>
         <div>
           <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950, letterSpacing: 1.2, textTransform: "uppercase" }}>LINE Back Office Alert</p>
@@ -80,12 +90,17 @@ export default async function AdminDashboardPage({
           </button>
         </form>
       </section>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(180px,1fr))", gap: 16, marginBottom: 18 }}>
         <Metric label="Total Stores" value={filteredStores.length} />
         <Metric label="Approved" value={filteredStores.filter((store) => store.status === "APPROVED").length} />
         <Metric label="Pending" value={filteredStores.filter((store) => store.status === "PENDING_APPROVAL").length} />
-        <Metric label="Total Scans" value={filteredScans.length} />
-        <Metric label="Total Points" value={pointsFromFilteredStores} />
+        <Metric label="QR Issued" value={qrRows.length} />
+        <Metric label="QR Claimed" value={qrClaimRows.length} tone="green" />
+        <Metric label="Claim Rate" value={qrClaimRate} suffix="%" tone="gold" />
+        <Metric label="Unclaimed QR" value={qrUnclaimedRows.length} tone="gold" />
+        <Metric label="Claimed Points" value={qrPointsClaimed} />
+        <Metric label="Store Points" value={pointsFromFilteredStores} />
         <Metric label="Open Scan Alerts" value={filteredAlerts.length} tone="gold" />
         <Metric label="Total Rewards Claimed" value={filteredRedemptions.length} tone="ruby" />
         <Metric label="Pending Fulfillment" value={pendingRedemptions.length} tone="gold" />
@@ -95,21 +110,69 @@ export default async function AdminDashboardPage({
       <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)", flexWrap: "wrap" }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 950, display: "inline-flex", alignItems: "center", gap: 10 }}>
-              <GitBranch size={24} color={adminUi.ruby} /> Wholesale Network Sales Tree
-            </h2>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 950 }}>QR Reward Performance</h2>
             <p style={{ margin: "6px 0 0", color: "rgba(21,19,19,.58)" }}>
-              Distributor comes from QR database. 1st scan becomes Tier 2, then the next scan becomes Tier 3.
+              Report grouped by distributor and apple size, using QR claim data from the database.
             </p>
           </div>
           <div style={{ borderRadius: 999, background: "#fff1f4", color: adminUi.ruby, padding: "9px 13px", fontWeight: 950 }}>
-            {salesTrees.length} distributor flows
+            {qrBatches?.length ?? 0} batches generated
           </div>
         </div>
-        {salesTrees.length ? (
-          <SalesNetworkGraph trees={salesTrees} />
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(320px,.72fr)", gap: 0 }}>
+          <div style={{ padding: 18, borderRight: "1px solid rgba(101,0,19,.08)" }}>
+            <h3 style={{ margin: 0, color: adminUi.ruby, letterSpacing: 1.1, textTransform: "uppercase", fontSize: 14 }}>By Distributor</h3>
+            <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+              {distributorSummaries.slice(0, 8).map((item) => (
+                <QrSummaryRow
+                  key={item.distributorName}
+                  title={item.distributorName}
+                  detail={`${item.claimedStoreCount} claiming stores | ${item.totalPointsClaimed} pts claimed`}
+                  issued={item.totalCodes}
+                  claimed={item.claimedCount}
+                  claimRate={item.claimRate}
+                />
+              ))}
+              {!distributorSummaries.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No QR generated in this filter yet.</p> : null}
+            </div>
+          </div>
+          <div style={{ padding: 18 }}>
+            <h3 style={{ margin: 0, color: adminUi.ruby, letterSpacing: 1.1, textTransform: "uppercase", fontSize: 14 }}>By Apple Size</h3>
+            <div style={{ marginTop: 12, display: "grid", gap: 10 }}>
+              {sizeSummaries.slice(0, 8).map((item) => (
+                <QrSummaryRow
+                  key={item.appleSize}
+                  title={`Size ${item.appleSize}`}
+                  detail={`${item.campaignCount} campaigns | ${item.totalPointsClaimed} pts claimed`}
+                  issued={item.totalCodes}
+                  claimed={item.claimedCount}
+                  claimRate={item.claimRate}
+                />
+              ))}
+              {!sizeSummaries.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No apple size data in this filter yet.</p> : null}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: 18, borderBottom: "1px solid rgba(101,0,19,.1)", flexWrap: "wrap" }}>
+          <div>
+            <h2 style={{ margin: 0, fontSize: 24, fontWeight: 950, display: "inline-flex", alignItems: "center", gap: 10 }}>
+              <GitBranch size={24} color={adminUi.ruby} /> QR Market Landing Graph
+            </h2>
+            <p style={{ margin: "6px 0 0", color: "rgba(21,19,19,.58)" }}>
+              Distributor comes from QR batch data. Claimed QR connects to the store that earned points.
+            </p>
+          </div>
+          <div style={{ borderRadius: 999, background: "#fff1f4", color: adminUi.ruby, padding: "9px 13px", fontWeight: 950 }}>
+            {qrNetwork.length} distributor networks
+          </div>
+        </div>
+        {qrNetwork.length ? (
+          <QrNetworkGraph trees={qrNetwork} />
         ) : (
-          <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No wholesale network flow matches this filter yet.</p>
+          <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No QR claim network matches this filter yet.</p>
         )}
       </section>
 
@@ -145,7 +208,7 @@ export default async function AdminDashboardPage({
             </div>
           );
         }) : (
-        <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No pending reward payments right now.</p>
+          <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No pending reward payments right now.</p>
         )}
       </section>
 
@@ -178,16 +241,23 @@ export default async function AdminDashboardPage({
         </section>
 
         <section style={{ ...adminUi.panel, padding: 20 }}>
-          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950 }}>Recent Scans</h2>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950 }}>Recent QR Claims</h2>
           <div style={{ display: "grid", gap: 10, marginTop: 14 }}>
-            {filteredScans.slice(0, 8).map((scan) => (
-              <div key={scan.id} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 14, padding: 12 }}>
-                <p style={{ margin: 0, fontWeight: 950 }}>{storesById.get(scan.store_id ?? "")?.name ?? "Unknown store"}</p>
-                <p style={{ margin: "4px 0 0", color: adminUi.ruby, fontWeight: 900 }}>{scan.tier_level}</p>
-                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>{new Date(scan.scanned_at).toLocaleString()}</p>
-              </div>
-            ))}
-            {!filteredScans.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No scans match this filter.</p> : null}
+            {qrClaimRows.slice(0, 8).map((qrCode) => {
+              const store = qrCode.claimed_by_outlet_id ? storesById.get(qrCode.claimed_by_outlet_id) : undefined;
+
+              return (
+                <div key={qrCode.id} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 14, padding: 12 }}>
+                  <p style={{ margin: 0, fontWeight: 950 }}>{store?.name ?? "Unknown store"}</p>
+                  <p style={{ margin: "4px 0 0", color: adminUi.ruby, fontWeight: 900 }}>{getQrDisplayCode(qrCode)}</p>
+                  <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>
+                    {getQrDistributorName(qrCode)} | Size {getQrAppleSize(qrCode)} | {qrCode.point_value ?? 0} pts
+                  </p>
+                  <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>{formatDateTime(qrCode.claimed_at ?? qrCode.created_at)}</p>
+                </div>
+              );
+            })}
+            {!qrClaimRows.length ? <p style={{ color: "rgba(21,19,19,.58)" }}>No QR claims match this filter.</p> : null}
           </div>
         </section>
       </div>
@@ -215,96 +285,209 @@ function getPeriodStart(period: DashboardPeriod) {
   return start;
 }
 
-function isAfterPeriodStart(value: string, start: Date | null) {
+function isAfterPeriodStart(value: string | null | undefined, start: Date | null) {
   if (!start) return true;
+  if (!value) return false;
   return new Date(value).getTime() >= start.getTime();
 }
 
-type SalesTreeFlow = {
-  code: string;
-  tier2StoreName: string | null;
-  tier2Time: string | null;
-  tier3StoreName: string | null;
-  tier3Time: string | null;
-};
-
-type SalesTree = {
+type QrDistributorSummary = {
   distributorName: string;
   totalCodes: number;
-  flowCount: number;
-  tier2Count: number;
-  tier3Count: number;
-  flows: SalesTreeFlow[];
+  claimedCount: number;
+  unclaimedCount: number;
+  claimRate: number;
+  totalPointsClaimed: number;
+  claimedStoreCount: number;
 };
 
-function buildSalesTrees({
-  qrCodes,
-  scans,
-  storesById,
-  selectedTier
-}: {
-  qrCodes: QrCodeRecord[];
-  scans: Scan[];
-  storesById: Map<string, Store>;
-  selectedTier: DashboardTierFilter;
-}) {
-  const scansByCode = scans.reduce<Record<string, Scan[]>>((groups, scan) => {
-    const key = scan.scanned_code.trim().toUpperCase();
-    groups[key] = groups[key] ?? [];
-    groups[key].push(scan);
-    return groups;
-  }, {});
-  const trees = new Map<string, SalesTree>();
+type QrSizeSummary = {
+  appleSize: string;
+  totalCodes: number;
+  claimedCount: number;
+  unclaimedCount: number;
+  claimRate: number;
+  totalPointsClaimed: number;
+  campaignCount: number;
+};
+
+type QrClaimNode = {
+  storeName: string;
+  storeTier: StoreTier;
+  qrCode: string;
+  claimedAt: string | null;
+  pointValue: number;
+};
+
+type QrSizeNetwork = {
+  label: string;
+  appleSize: string;
+  campaignName: string;
+  totalCodes: number;
+  claimedCount: number;
+  claims: QrClaimNode[];
+};
+
+type QrNetworkGroup = {
+  distributorName: string;
+  totalCodes: number;
+  claimedCount: number;
+  unclaimedCount: number;
+  totalPointsClaimed: number;
+  sizes: QrSizeNetwork[];
+};
+
+function buildQrDistributorSummaries(qrCodes: QrCodeRecord[], storesById: Map<string, Store>): QrDistributorSummary[] {
+  const groups = new Map<string, QrDistributorSummary & { claimedStoreIds: Set<string> }>();
 
   for (const qrCode of qrCodes) {
-    const distributorName = qrCode.distributor_name || "Unknown Distributor";
-    const tree = trees.get(distributorName) ?? {
+    const distributorName = getQrDistributorName(qrCode);
+    const group = groups.get(distributorName) ?? {
       distributorName,
       totalCodes: 0,
-      flowCount: 0,
-      tier2Count: 0,
-      tier3Count: 0,
-      flows: []
+      claimedCount: 0,
+      unclaimedCount: 0,
+      claimRate: 0,
+      totalPointsClaimed: 0,
+      claimedStoreCount: 0,
+      claimedStoreIds: new Set<string>()
     };
-    const code = qrCode.code.trim().toUpperCase();
-    const codeScans = [...(scansByCode[code] ?? [])].sort((a, b) => new Date(a.scanned_at).getTime() - new Date(b.scanned_at).getTime());
-    const tier2Scan = codeScans.find((scan) => scan.tier_level === "TIER2") ?? null;
-    const tier3Scan = codeScans.find((scan) => scan.tier_level === "TIER3") ?? null;
 
-    tree.totalCodes += 1;
+    group.totalCodes += 1;
 
-    if (tier2Scan || tier3Scan) {
-      tree.flowCount += 1;
-      if (tier2Scan) tree.tier2Count += 1;
-      if (tier3Scan) tree.tier3Count += 1;
-
-      tree.flows.push({
-        code,
-        tier2StoreName: tier2Scan?.store_id ? storesById.get(tier2Scan.store_id)?.name ?? "Unknown Tier 2 store" : null,
-        tier2Time: tier2Scan?.scanned_at ?? null,
-        tier3StoreName: tier3Scan?.store_id ? storesById.get(tier3Scan.store_id)?.name ?? "Unknown Tier 3 store" : null,
-        tier3Time: tier3Scan?.scanned_at ?? null
-      });
+    if (isQrClaimed(qrCode)) {
+      group.claimedCount += 1;
+      group.totalPointsClaimed += qrCode.point_value ?? 0;
+      if (qrCode.claimed_by_outlet_id && storesById.has(qrCode.claimed_by_outlet_id)) {
+        group.claimedStoreIds.add(qrCode.claimed_by_outlet_id);
+      }
+    } else if (qrCode.status !== "void") {
+      group.unclaimedCount += 1;
     }
 
-    trees.set(distributorName, tree);
+    groups.set(distributorName, group);
   }
 
-  return [...trees.values()]
-    .map((tree) => ({
-      ...tree,
-      flows: tree.flows
-        .filter((flow) => selectedTier === "ALL" || selectedTier === "DISTRIBUTOR" || (selectedTier === "TIER2" && flow.tier2StoreName) || (selectedTier === "TIER3" && flow.tier3StoreName))
-        .sort((a, b) => new Date(b.tier3Time ?? b.tier2Time ?? 0).getTime() - new Date(a.tier3Time ?? a.tier2Time ?? 0).getTime())
+  return [...groups.values()]
+    .map(({ claimedStoreIds, ...group }) => ({
+      ...group,
+      claimedStoreCount: claimedStoreIds.size,
+      claimRate: group.totalCodes ? Math.round((group.claimedCount / group.totalCodes) * 100) : 0
     }))
-    .filter((tree) => tree.flows.length > 0)
-    .sort((a, b) => b.flowCount - a.flowCount || b.tier3Count - a.tier3Count);
+    .sort((a, b) => b.claimedCount - a.claimedCount || b.totalCodes - a.totalCodes);
+}
+
+function buildQrSizeSummaries(qrCodes: QrCodeRecord[]): QrSizeSummary[] {
+  const groups = new Map<string, QrSizeSummary & { campaigns: Set<string> }>();
+
+  for (const qrCode of qrCodes) {
+    const appleSize = getQrAppleSize(qrCode);
+    const group = groups.get(appleSize) ?? {
+      appleSize,
+      totalCodes: 0,
+      claimedCount: 0,
+      unclaimedCount: 0,
+      claimRate: 0,
+      totalPointsClaimed: 0,
+      campaignCount: 0,
+      campaigns: new Set<string>()
+    };
+
+    group.totalCodes += 1;
+    group.campaigns.add(getQrCampaignName(qrCode));
+
+    if (isQrClaimed(qrCode)) {
+      group.claimedCount += 1;
+      group.totalPointsClaimed += qrCode.point_value ?? 0;
+    } else if (qrCode.status !== "void") {
+      group.unclaimedCount += 1;
+    }
+
+    groups.set(appleSize, group);
+  }
+
+  return [...groups.values()]
+    .map(({ campaigns, ...group }) => ({
+      ...group,
+      campaignCount: campaigns.size,
+      claimRate: group.totalCodes ? Math.round((group.claimedCount / group.totalCodes) * 100) : 0
+    }))
+    .sort((a, b) => b.claimedCount - a.claimedCount || b.totalCodes - a.totalCodes);
+}
+
+function buildQrNetwork({
+  qrCodes,
+  storesById
+}: {
+  qrCodes: QrCodeRecord[];
+  storesById: Map<string, Store>;
+}): QrNetworkGroup[] {
+  const groups = new Map<string, QrNetworkGroup & { sizesByKey: Map<string, QrSizeNetwork> }>();
+
+  for (const qrCode of qrCodes) {
+    const distributorName = getQrDistributorName(qrCode);
+    const group = groups.get(distributorName) ?? {
+      distributorName,
+      totalCodes: 0,
+      claimedCount: 0,
+      unclaimedCount: 0,
+      totalPointsClaimed: 0,
+      sizes: [],
+      sizesByKey: new Map<string, QrSizeNetwork>()
+    };
+    const appleSize = getQrAppleSize(qrCode);
+    const campaignName = getQrCampaignName(qrCode);
+    const sizeKey = `${appleSize}|${campaignName}`;
+    const sizeNode = group.sizesByKey.get(sizeKey) ?? {
+      label: `Size ${appleSize} / ${campaignName}`,
+      appleSize,
+      campaignName,
+      totalCodes: 0,
+      claimedCount: 0,
+      claims: []
+    };
+
+    group.totalCodes += 1;
+    sizeNode.totalCodes += 1;
+
+    if (isQrClaimed(qrCode)) {
+      const store = qrCode.claimed_by_outlet_id ? storesById.get(qrCode.claimed_by_outlet_id) : undefined;
+      group.claimedCount += 1;
+      group.totalPointsClaimed += qrCode.point_value ?? 0;
+      sizeNode.claimedCount += 1;
+      sizeNode.claims.push({
+        storeName: store?.name ?? "Unknown store",
+        storeTier: store?.tier ?? "UNASSIGNED",
+        qrCode: getQrDisplayCode(qrCode),
+        claimedAt: qrCode.claimed_at,
+        pointValue: qrCode.point_value ?? 0
+      });
+    } else if (qrCode.status !== "void") {
+      group.unclaimedCount += 1;
+    }
+
+    group.sizesByKey.set(sizeKey, sizeNode);
+    group.sizes = [...group.sizesByKey.values()].sort((a, b) => b.claimedCount - a.claimedCount || b.totalCodes - a.totalCodes);
+    groups.set(distributorName, group);
+  }
+
+  return [...groups.values()]
+    .map((group) => ({
+      distributorName: group.distributorName,
+      totalCodes: group.totalCodes,
+      claimedCount: group.claimedCount,
+      unclaimedCount: group.unclaimedCount,
+      totalPointsClaimed: group.totalPointsClaimed,
+      sizes: group.sizes
+    }))
+    .sort((a, b) => b.claimedCount - a.claimedCount || b.totalCodes - a.totalCodes)
+    .filter((group) => group.totalCodes > 0);
 }
 
 type GraphNode = {
   id: string;
   label: string;
-  kind: "distributor" | "tier2" | "tier3";
+  kind: "distributor" | "size" | "outlet";
   x: number;
   y: number;
 };
@@ -314,7 +497,7 @@ type GraphLink = {
   targetId: string;
 };
 
-function SalesNetworkGraph({ trees }: { trees: SalesTree[] }) {
+function QrNetworkGraph({ trees }: { trees: QrNetworkGroup[] }) {
   const graph = buildNetworkGraph(trees);
 
   return (
@@ -329,15 +512,15 @@ function SalesNetworkGraph({ trees }: { trees: SalesTree[] }) {
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: "16px 18px", color: "white", borderBottom: "1px solid rgba(255,255,255,.08)", flexWrap: "wrap" }}>
           <div>
             <p style={{ margin: 0, color: "#f8d98a", fontSize: 12, fontWeight: 950, letterSpacing: 1.5, textTransform: "uppercase" }}>Network Map</p>
-            <p style={{ margin: "5px 0 0", color: "rgba(255,255,255,.68)", fontSize: 13 }}>Live scan paths grouped by QR distributor source</p>
+            <p style={{ margin: "5px 0 0", color: "rgba(255,255,255,.68)", fontSize: 13 }}>QR batches grouped by distributor, apple size, and claimed outlet</p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <LegendDot color="#f8d98a" label="Distributor" />
-            <LegendDot color="#ffffff" label="Tier 2" />
-            <LegendDot color="#ff4b6a" label="Tier 3" />
+            <LegendDot color="#ffffff" label="Size / Campaign" />
+            <LegendDot color="#ff4b6a" label="Claimed Store" />
           </div>
         </div>
-        <svg viewBox="0 0 1100 560" role="img" aria-label="Wholesale network graph" style={{ display: "block", width: "100%", minHeight: 360 }}>
+        <svg viewBox="0 0 1100 560" role="img" aria-label="QR market landing network graph" style={{ display: "block", width: "100%", minHeight: 360 }}>
           <defs>
             <filter id="node-glow" x="-80%" y="-80%" width="260%" height="260%">
               <feGaussianBlur stdDeviation="4" result="coloredBlur" />
@@ -358,28 +541,28 @@ function SalesNetworkGraph({ trees }: { trees: SalesTree[] }) {
                 key={`${link.sourceId}-${link.targetId}`}
                 d={`M ${source.x} ${source.y} C ${source.x} ${midY}, ${target.x} ${midY}, ${target.x} ${target.y}`}
                 fill="none"
-                stroke={target.kind === "tier3" ? "rgba(255,75,106,.38)" : "rgba(255,255,255,.22)"}
-                strokeWidth={target.kind === "tier3" ? 1.35 : 1.1}
+                stroke={target.kind === "outlet" ? "rgba(255,75,106,.38)" : "rgba(255,255,255,.22)"}
+                strokeWidth={target.kind === "outlet" ? 1.35 : 1.1}
               />
             );
           })}
           {graph.nodes.map((node) => (
             <g key={node.id} transform={`translate(${node.x} ${node.y})`}>
               <circle
-                r={node.kind === "distributor" ? 7 : node.kind === "tier2" ? 5.5 : 4.5}
-                fill={node.kind === "distributor" ? "#f8d98a" : node.kind === "tier2" ? "#f4f4f4" : "#ff4b6a"}
-                opacity={node.kind === "tier3" ? 0.92 : 1}
+                r={node.kind === "distributor" ? 7 : node.kind === "size" ? 5.5 : 4.5}
+                fill={node.kind === "distributor" ? "#f8d98a" : node.kind === "size" ? "#f4f4f4" : "#ff4b6a"}
+                opacity={node.kind === "outlet" ? 0.92 : 1}
                 filter="url(#node-glow)"
               />
               <text
-                x={node.kind === "tier3" ? 8 : 9}
+                x={node.kind === "outlet" ? 8 : 9}
                 y={node.kind === "distributor" ? -9 : 4}
                 fill={node.kind === "distributor" ? "#f8d98a" : "rgba(255,255,255,.78)"}
                 fontSize={node.kind === "distributor" ? 13 : 10}
                 fontWeight={node.kind === "distributor" ? 900 : 650}
                 style={{ pointerEvents: "none" }}
               >
-                {shortLabel(node.label, node.kind === "distributor" ? 20 : 16)}
+                {shortLabel(node.label, node.kind === "distributor" ? 20 : 18)}
               </text>
             </g>
           ))}
@@ -398,60 +581,52 @@ function LegendDot({ color, label }: { color: string; label: string }) {
   );
 }
 
-function buildNetworkGraph(trees: SalesTree[]) {
+function buildNetworkGraph(trees: QrNetworkGroup[]) {
   const nodes: GraphNode[] = [];
   const links: GraphLink[] = [];
   const nodeMap = new Map<string, GraphNode>();
-  const tier2Parents = new Map<string, string>();
-  const distributorTrees = trees.slice(0, 12);
+  const distributorTrees = trees.slice(0, 10);
 
   distributorTrees.forEach((tree, distributorIndex) => {
     const distributorX = spreadPosition(distributorIndex, distributorTrees.length, 90, 1010);
     const distributorId = `d:${tree.distributorName}`;
     addGraphNode(nodeMap, nodes, {
       id: distributorId,
-      label: tree.distributorName,
+      label: `${tree.distributorName} (${tree.claimedCount}/${tree.totalCodes})`,
       kind: "distributor",
       x: distributorX,
       y: 48 + (distributorIndex % 2) * 26
     });
 
-    const tier2Names = uniqueValues(tree.flows.map((flow) => flow.tier2StoreName).filter(Boolean) as string[]).slice(0, 12);
-    tier2Names.forEach((tier2Name, tier2Index) => {
-      const tier2Id = `t2:${tree.distributorName}:${tier2Name}`;
-      const tier2X = distributorX + spreadOffset(tier2Index, tier2Names.length, 150);
-      const tier2Y = 195 + ((tier2Index + distributorIndex) % 3) * 34;
+    const sizeNodes = tree.sizes.slice(0, 8);
+    sizeNodes.forEach((sizeNode, sizeIndex) => {
+      const sizeId = `s:${tree.distributorName}:${sizeNode.label}`;
+      const sizeX = distributorX + spreadOffset(sizeIndex, sizeNodes.length, 180);
+      const sizeY = 190 + ((sizeIndex + distributorIndex) % 3) * 34;
       addGraphNode(nodeMap, nodes, {
-        id: tier2Id,
-        label: tier2Name,
-        kind: "tier2",
-        x: clamp(tier2X, 45, 1055),
-        y: tier2Y
+        id: sizeId,
+        label: `${sizeNode.label} (${sizeNode.claimedCount}/${sizeNode.totalCodes})`,
+        kind: "size",
+        x: clamp(sizeX, 45, 1055),
+        y: sizeY
       });
-      addGraphLink(links, distributorId, tier2Id);
-      tier2Parents.set(tier2Name, tier2Id);
-    });
+      addGraphLink(links, distributorId, sizeId);
 
-    tree.flows
-      .filter((flow) => flow.tier2StoreName && flow.tier3StoreName)
-      .slice(0, 48)
-      .forEach((flow, flowIndex) => {
-        const tier2Id = tier2Parents.get(flow.tier2StoreName ?? "");
-        if (!tier2Id || !flow.tier3StoreName) return;
-
-        const parent = nodeMap.get(tier2Id);
-        const tier3Id = `t3:${tree.distributorName}:${flow.tier2StoreName}:${flow.tier3StoreName}:${flowIndex}`;
-        const tier3X = (parent?.x ?? distributorX) + spreadOffset(flowIndex % 7, 7, 120);
-        const tier3Y = 370 + (flowIndex % 4) * 38;
+      const outletNodes = groupClaimsByStore(sizeNode.claims).slice(0, 10);
+      outletNodes.forEach((outlet, outletIndex) => {
+        const outletId = `o:${tree.distributorName}:${sizeNode.label}:${outlet.storeName}:${outletIndex}`;
+        const outletX = sizeX + spreadOffset(outletIndex % 5, Math.min(outletNodes.length, 5), 150);
+        const outletY = 360 + Math.floor(outletIndex / 5) * 52 + ((outletIndex + sizeIndex) % 2) * 18;
         addGraphNode(nodeMap, nodes, {
-          id: tier3Id,
-          label: flow.tier3StoreName,
-          kind: "tier3",
-          x: clamp(tier3X, 35, 1065),
-          y: tier3Y
+          id: outletId,
+          label: `${outlet.storeName} (${outlet.claimCount})`,
+          kind: "outlet",
+          x: clamp(outletX, 35, 1065),
+          y: outletY
         });
-        addGraphLink(links, tier2Id, tier3Id);
+        addGraphLink(links, sizeId, outletId);
       });
+    });
   });
 
   return { nodes, links, nodeMap };
@@ -478,26 +653,107 @@ function spreadOffset(index: number, count: number, width: number) {
   return -width / 2 + (width * index) / (count - 1);
 }
 
-function uniqueValues(values: string[]) {
-  return Array.from(new Set(values));
-}
-
 function clamp(value: number, min: number, max: number) {
   return Math.min(max, Math.max(min, value));
 }
 
 function shortLabel(value: string, maxLength: number) {
-  return value.length > maxLength ? `${value.slice(0, maxLength - 1)}…` : value;
+  return value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
 }
 
-function Metric({ label, value, tone = "ruby" }: { label: string; value: number; tone?: "ruby" | "gold" | "green" }) {
+function groupClaimsByStore(claims: QrClaimNode[]) {
+  const groups = new Map<string, { storeName: string; storeTier: StoreTier; claimCount: number; totalPoints: number }>();
+
+  for (const claim of claims) {
+    const group = groups.get(claim.storeName) ?? {
+      storeName: claim.storeName,
+      storeTier: claim.storeTier,
+      claimCount: 0,
+      totalPoints: 0
+    };
+    group.claimCount += 1;
+    group.totalPoints += claim.pointValue;
+    groups.set(claim.storeName, group);
+  }
+
+  return [...groups.values()].sort((a, b) => b.claimCount - a.claimCount || b.totalPoints - a.totalPoints);
+}
+
+function isQrClaimed(qrCode: QrCodeRecord) {
+  return qrCode.status === "claimed" || Boolean(qrCode.claimed_by_outlet_id || qrCode.claimed_at);
+}
+
+function getQrDistributorName(qrCode: QrCodeRecord) {
+  return qrCode.distributor_name?.trim() || qrCode.distributor_id?.trim() || "Unknown Distributor";
+}
+
+function getQrAppleSize(qrCode: QrCodeRecord) {
+  return qrCode.apple_size?.trim() || "Unknown";
+}
+
+function getQrCampaignName(qrCode: QrCodeRecord) {
+  return qrCode.campaign_name?.trim() || "No campaign";
+}
+
+function getQrDisplayCode(qrCode: QrCodeRecord) {
+  return (qrCode.human_readable_code || qrCode.code || qrCode.qr_code || "").trim();
+}
+
+function formatDateTime(value: string | null | undefined) {
+  if (!value) return "No date";
+  return new Date(value).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" });
+}
+
+function QrSummaryRow({
+  title,
+  detail,
+  issued,
+  claimed,
+  claimRate
+}: {
+  title: string;
+  detail: string;
+  issued: number;
+  claimed: number;
+  claimRate: number;
+}) {
+  return (
+    <div style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 16, padding: 13, background: "#fff" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "baseline" }}>
+        <div>
+          <p style={{ margin: 0, fontWeight: 950 }}>{title}</p>
+          <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.55)", fontSize: 13 }}>{detail}</p>
+        </div>
+        <b style={{ color: adminUi.ruby }}>{claimRate}%</b>
+      </div>
+      <div style={{ height: 8, borderRadius: 999, background: "#fff1f4", overflow: "hidden", marginTop: 10 }}>
+        <div style={{ width: `${clamp(claimRate, 0, 100)}%`, height: "100%", background: `linear-gradient(90deg, ${adminUi.ruby}, #047857)` }} />
+      </div>
+      <p style={{ margin: "8px 0 0", color: "rgba(21,19,19,.6)", fontSize: 12 }}>
+        {claimed.toLocaleString("en-US")} claimed / {issued.toLocaleString("en-US")} issued
+      </p>
+    </div>
+  );
+}
+
+function Metric({
+  label,
+  value,
+  tone = "ruby",
+  suffix = ""
+}: {
+  label: string;
+  value: number;
+  tone?: "ruby" | "gold" | "green";
+  suffix?: string;
+}) {
   const color = tone === "green" ? "#047857" : tone === "gold" ? "#b98018" : adminUi.ruby;
   const background = tone === "green" ? "linear-gradient(135deg, rgba(4,120,87,.08), rgba(255,255,255,.96))" : tone === "gold" ? "linear-gradient(135deg, rgba(217,183,111,.18), rgba(255,255,255,.96))" : "rgba(255,255,255,.96)";
 
   return (
     <div style={{ ...adminUi.panel, padding: 20, background }}>
       <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontWeight: 800 }}>{label}</p>
-      <p style={{ margin: "8px 0 0", color, fontSize: 38, fontWeight: 950 }}>{value}</p>
+      <p style={{ margin: "8px 0 0", color, fontSize: 38, fontWeight: 950 }}>{value.toLocaleString("en-US")}{suffix}</p>
     </div>
   );
 }
