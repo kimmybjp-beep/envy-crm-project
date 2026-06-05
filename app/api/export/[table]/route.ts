@@ -7,6 +7,7 @@ const allowedTables = new Set([
   "stores",
   "scans",
   "scan_alerts",
+  "password_reset_requests",
   "qr_batches",
   "qr_codes",
   "qr_code_counters",

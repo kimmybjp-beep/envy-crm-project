@@ -4,7 +4,7 @@ import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
-const tables = ["stores", "scans", "scan_alerts", "qr_batches", "qr_codes", "qr_code_counters", "rewards", "reward_redemptions"];
+const tables = ["stores", "scans", "scan_alerts", "password_reset_requests", "qr_batches", "qr_codes", "qr_code_counters", "rewards", "reward_redemptions"];
 
 const businessReports = [
   {

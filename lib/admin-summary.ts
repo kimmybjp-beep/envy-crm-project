@@ -1,5 +1,5 @@
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { QrBatch, QrCodeRecord, RewardRedemption, Scan, Store } from "@/lib/types";
+import type { PasswordResetRequest, QrBatch, QrCodeRecord, RewardRedemption, Scan, Store } from "@/lib/types";
 
 export type AdminSummary = {
   generatedAt: string;
@@ -12,6 +12,7 @@ export type AdminSummary = {
   pendingRedemptionStores: number;
   paidRedemptions: number;
   paidRedemptionStores: number;
+  pendingPasswordResetRequests: number;
   qrBatches: number;
   qrIssued: number;
   qrClaimed: number;
@@ -35,14 +36,16 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     { data: todayScans },
     { data: redemptions },
     { data: qrBatches },
-    { data: qrCodes }
+    { data: qrCodes },
+    { data: passwordResetRequests }
   ] = await Promise.all([
     supabase.from("stores").select("*").returns<Store[]>(),
     supabase.from("scans").select("*").returns<Scan[]>(),
     supabase.from("scans").select("*").gte("scanned_at", startOfDay.toISOString()).returns<Scan[]>(),
     supabase.from("reward_redemptions").select("*").returns<RewardRedemption[]>(),
     supabase.from("qr_batches").select("*").returns<QrBatch[]>(),
-    supabase.from("qr_codes").select("*").returns<QrCodeRecord[]>()
+    supabase.from("qr_codes").select("*").returns<QrCodeRecord[]>(),
+    supabase.from("password_reset_requests").select("*").eq("status", "OPEN").returns<PasswordResetRequest[]>()
   ]);
 
   const storeRows = stores ?? [];
@@ -64,6 +67,7 @@ export async function getAdminSummary(): Promise<AdminSummary> {
     pendingRedemptionStores: new Set(pendingRedemptions.map((item) => item.store_id)).size,
     paidRedemptions: paidRedemptions.length,
     paidRedemptionStores: new Set(paidRedemptions.map((item) => item.store_id)).size,
+    pendingPasswordResetRequests: (passwordResetRequests ?? []).length,
     qrBatches: (qrBatches ?? []).length,
     qrIssued: qrRows.length,
     qrClaimed,
@@ -96,6 +100,7 @@ export function formatFallbackSummary(summary: AdminSummary) {
     `Total scans: ${summary.totalScans}`,
     `Pending reward payments: ${summary.pendingRedemptions} redemptions / ${summary.pendingRedemptionStores} stores`,
     `Paid rewards: ${summary.paidRedemptions} redemptions / ${summary.paidRedemptionStores} stores`,
+    `Pending password resets: ${summary.pendingPasswordResetRequests}`,
     `QR batches: ${summary.qrBatches}`,
     `QR issued: ${summary.qrIssued}`,
     `QR claimed: ${summary.qrClaimed} (${summary.qrClaimRate}%)`,

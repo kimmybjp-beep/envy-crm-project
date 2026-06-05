@@ -1,12 +1,13 @@
 import Image from "next/image";
+import { KeyRound } from "lucide-react";
 import { publishAdminMessageAction } from "@/app/actions/admin";
 import { resolveScanAlertAction } from "@/app/actions/scans";
-import { resetStorePasswordAction, reviewStoreAction, updateStoreTierAction } from "@/app/actions/stores";
+import { resetStorePasswordAction, resolvePasswordResetRequestAction, reviewStoreAction, updateStoreTierAction } from "@/app/actions/stores";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { MessageBanner } from "@/components/message-banner";
 import { StatusPill } from "@/components/status-pill";
 import { getSupabaseAdminClient } from "@/lib/supabase-admin";
-import type { ScanAlert, Store, StoreTier } from "@/lib/types";
+import type { PasswordResetRequest, ScanAlert, Store, StoreTier } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export default async function AdminPage({
 }) {
   const { message } = await searchParams;
   const supabase = getSupabaseAdminClient();
-  const [{ data: stores }, { data: scanAlerts }] = await Promise.all([
+  const [{ data: stores }, { data: scanAlerts }, { data: passwordResetRequests }] = await Promise.all([
     supabase
       .from("stores")
       .select("*")
@@ -30,11 +31,19 @@ export default async function AdminPage({
       .neq("status", "RESOLVED")
       .order("created_at", { ascending: false })
       .limit(12)
-      .returns<ScanAlert[]>()
+      .returns<ScanAlert[]>(),
+    supabase
+      .from("password_reset_requests")
+      .select("*")
+      .eq("status", "OPEN")
+      .order("requested_at", { ascending: false })
+      .limit(20)
+      .returns<PasswordResetRequest[]>()
   ]);
   const storeRows = stores ?? [];
   const pendingStores = storeRows.filter((store) => store.status === "PENDING_APPROVAL");
   const alertRows = scanAlerts ?? [];
+  const passwordResetRows = passwordResetRequests ?? [];
   const storesById = new Map(storeRows.map((store) => [store.id, store]));
 
   return (
@@ -43,7 +52,7 @@ export default async function AdminPage({
 
       <div style={{
         display: "grid",
-        gridTemplateColumns: "minmax(240px,.75fr) minmax(320px,1.25fr)",
+        gridTemplateColumns: "repeat(auto-fit,minmax(260px,1fr))",
         gap: 18,
         marginBottom: 18
       }}>
@@ -51,6 +60,12 @@ export default async function AdminPage({
           <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontWeight: 800 }}>Pending queue</p>
           <p style={{ margin: "6px 0 0", fontSize: 54, lineHeight: 1, fontWeight: 950, color: adminUi.ruby }}>{pendingStores.length}</p>
           <p style={{ margin: "8px 0 0", color: "rgba(21,19,19,.58)" }}>stores awaiting review</p>
+        </section>
+
+        <section style={{ ...adminUi.panel, padding: 22 }}>
+          <p style={{ margin: 0, color: "rgba(21,19,19,.55)", fontWeight: 800 }}>Password reset queue</p>
+          <p style={{ margin: "6px 0 0", fontSize: 54, lineHeight: 1, fontWeight: 950, color: adminUi.ruby }}>{passwordResetRows.length}</p>
+          <p style={{ margin: "8px 0 0", color: "rgba(21,19,19,.58)" }}>stores asking for help</p>
         </section>
 
         <section style={{ ...adminUi.panel, padding: 22 }}>
@@ -80,6 +95,70 @@ export default async function AdminPage({
           </form>
         </section>
       </div>
+
+      <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
+        <div style={{ padding: "18px 20px", borderBottom: "1px solid rgba(101,0,19,.1)" }}>
+          <h2 style={{ margin: 0, fontSize: 22, fontWeight: 950, display: "flex", alignItems: "center", gap: 10 }}>
+            <KeyRound size={22} color={adminUi.ruby} /> Password Reset Requests
+          </h2>
+          <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.58)" }}>
+            ร้านค้ากดขอความช่วยเหลือจากหน้า Login รายการนี้ต้องให้ Back Office ตรวจสอบและตั้งรหัสใหม่เอง
+          </p>
+        </div>
+        {passwordResetRows.length ? passwordResetRows.map((request) => {
+          const store = (request.store_id ? storesById.get(request.store_id) : undefined)
+            ?? storeRows.find((item) => item.phone === request.phone);
+
+          return (
+            <div key={request.id} style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr 1.55fr", gap: 14, alignItems: "start", padding: "16px 20px", borderBottom: "1px solid rgba(101,0,19,.08)" }}>
+              <div>
+                <b style={{ color: adminUi.charcoal }}>{store?.name ?? "Unknown store"}</b>
+                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>
+                  {store?.owner_name ?? "No matched store"} - {request.phone}
+                </p>
+              </div>
+              <div>
+                <p style={{ margin: 0, color: adminUi.ruby, fontWeight: 950 }}>{request.status}</p>
+                <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.55)", fontSize: 13 }}>
+                  {new Date(request.requested_at).toLocaleString("th-TH", { timeZone: "Asia/Bangkok" })}
+                </p>
+                {request.note ? <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.48)", fontSize: 12 }}>{request.note}</p> : null}
+              </div>
+              <div style={{ display: "grid", gap: 8 }}>
+                {store ? (
+                  <form action={resetStorePasswordAction} style={{ display: "grid", gridTemplateColumns: "1fr auto", gap: 8 }}>
+                    <input type="hidden" name="storeId" value={store.id} />
+                    <input type="hidden" name="requestId" value={request.id} />
+                    <input
+                      name="password"
+                      type="password"
+                      minLength={8}
+                      required
+                      placeholder="New password"
+                      style={{ ...adminUi.input, padding: "9px 10px", fontSize: 13 }}
+                    />
+                    <button style={{ ...adminUi.button, padding: "9px 12px", background: "#7a0016", fontSize: 12 }}>
+                      Reset
+                    </button>
+                  </form>
+                ) : (
+                  <p style={{ margin: 0, color: "rgba(21,19,19,.58)", fontSize: 13 }}>
+                    เบอร์นี้ยังไม่ตรงกับร้านในระบบ ตรวจสอบก่อนติดต่อกลับ
+                  </p>
+                )}
+                <form action={resolvePasswordResetRequestAction}>
+                  <input type="hidden" name="requestId" value={request.id} />
+                  <button style={{ ...adminUi.button, padding: "9px 12px", background: adminUi.charcoal, fontSize: 12 }}>
+                    Mark Resolved
+                  </button>
+                </form>
+              </div>
+            </div>
+          );
+        }) : (
+          <p style={{ margin: 0, padding: 22, color: "rgba(21,19,19,.58)" }}>No open password reset requests.</p>
+        )}
+      </section>
 
       <section style={{ ...adminUi.panel, marginBottom: 18, overflow: "hidden" }}>
         <div style={{ padding: "18px 20px", borderBottom: "1px solid rgba(101,0,19,.1)" }}>

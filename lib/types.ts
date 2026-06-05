@@ -48,6 +48,17 @@ export type AdminMessage = {
   created_at: string;
 };
 
+export type PasswordResetRequest = {
+  id: string;
+  store_id: string | null;
+  phone: string;
+  status: "OPEN" | "RESOLVED" | "CANCELLED" | string;
+  requested_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+  note: string | null;
+};
+
 export type QrBatch = {
   id: string;
   batch_name: string | null;

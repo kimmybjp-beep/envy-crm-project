@@ -24,6 +24,10 @@ const messages: Record<string, string> = {
   "password-required": "This store account has no password yet. Please register again or contact Back Office.",
   "password-reset": "Store password has been reset.",
   "password-reset-error": "Store password could not be reset.",
+  "password-reset-requested": "ส่งคำขอรีเซ็ตรหัสผ่านเรียบร้อยแล้ว ทีมงาน Back Office จะติดต่อกลับ",
+  "password-reset-request-error": "ส่งคำขอรีเซ็ตรหัสผ่านไม่สำเร็จ กรุณาติดต่อ Back Office",
+  "password-reset-request-resolved": "Password reset request closed.",
+  "password-reset-request-resolve-error": "Password reset request could not be closed.",
   "line-summary-sent": "LINE dashboard summary sent.",
   "line-summary-error": "LINE summary could not be sent. Check LINE environment variables in Vercel.",
   "store-not-found": "Store phone number was not found.",
@@ -39,7 +43,7 @@ const messages: Record<string, string> = {
 export function MessageBanner({ message }: { message?: string }) {
   if (!message || !messages[message]) return null;
 
-  const isSuccess = message === "success" || message === "store-submitted" || message === "store-already-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "reward-deleted" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "line-summary-sent";
+  const isSuccess = message === "success" || message === "store-submitted" || message === "store-already-submitted" || message === "review-saved" || message === "message-saved" || message === "reward-saved" || message === "reward-deleted" || message === "redeem-success" || message === "redemption-updated" || message === "password-reset" || message === "password-reset-requested" || message === "password-reset-request-resolved" || message === "line-summary-sent";
 
   return (
     <div className={`mb-5 rounded-lg border px-4 py-3 text-sm ${

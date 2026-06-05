@@ -1,9 +1,12 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { verifyPassword } from "@/lib/password";
+import { pushLineText } from "@/lib/line";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import { getSupabaseClient } from "@/lib/supabase";
 
 const loginSchema = z.object({
@@ -13,6 +16,10 @@ const loginSchema = z.object({
 
 const adminLoginSchema = z.object({
   password: z.string().min(1)
+});
+
+const passwordResetRequestSchema = z.object({
+  phone: z.string().min(7)
 });
 
 export async function storeLoginAction(formData: FormData) {
@@ -49,6 +56,65 @@ export async function storeLoginAction(formData: FormData) {
   });
 
   redirect("/home");
+}
+
+export async function requestStorePasswordResetAction(formData: FormData) {
+  const parsed = passwordResetRequestSchema.safeParse({
+    phone: formData.get("phone")
+  });
+
+  if (!parsed.success) redirect("/login?message=invalid");
+
+  const phone = parsed.data.phone.trim();
+  const supabase = getSupabaseAdminClient();
+  const { data: store } = await supabase
+    .from("stores")
+    .select("id,name,owner_name,phone,status")
+    .eq("phone", phone)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  const recentWindow = new Date(Date.now() - 30 * 60 * 1000).toISOString();
+  const { data: existingRequest, error: existingError } = await supabase
+    .from("password_reset_requests")
+    .select("id")
+    .eq("phone", phone)
+    .eq("status", "OPEN")
+    .gte("requested_at", recentWindow)
+    .limit(1)
+    .maybeSingle();
+
+  if (existingError) redirect("/login?message=password-reset-request-error");
+
+  if (!existingRequest) {
+    const { error } = await supabase.from("password_reset_requests").insert({
+      store_id: store?.id ?? null,
+      phone,
+      note: store
+        ? `Store: ${store.name} / Owner: ${store.owner_name ?? "-"} / Status: ${store.status}`
+        : "Phone number was not found in stores. Admin should verify before contacting."
+    });
+
+    if (error) redirect("/login?message=password-reset-request-error");
+
+    const appUrl = (process.env.NEXT_PUBLIC_SITE_URL || "https://envy-crm-project.vercel.app").replace(/\/$/, "");
+    try {
+      await pushLineText([
+        "ENVY Password Reset Request",
+        `Store: ${store?.name ?? "No matching store"}`,
+        `Owner: ${store?.owner_name ?? "-"}`,
+        `Phone: ${phone}`,
+        `Status: ${store?.status ?? "UNKNOWN"}`,
+        `Admin: ${appUrl}/admin`
+      ].join("\n"));
+    } catch {
+      // LINE notification is helpful, but the reset request is already recorded.
+    }
+  }
+
+  revalidatePath("/admin");
+  redirect("/login?message=password-reset-requested");
 }
 
 export async function adminLoginAction(formData: FormData) {

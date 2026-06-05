@@ -109,6 +109,17 @@ create table if not exists public.admin_messages (
   created_at timestamptz not null default now()
 );
 
+create table if not exists public.password_reset_requests (
+  id uuid primary key default gen_random_uuid(),
+  store_id uuid references public.stores (id) on delete set null,
+  phone text not null,
+  status text not null default 'OPEN' check (status in ('OPEN', 'RESOLVED', 'CANCELLED')),
+  requested_at timestamptz not null default now(),
+  resolved_at timestamptz,
+  resolved_by text,
+  note text
+);
+
 create table if not exists public.scan_alerts (
   id uuid primary key default gen_random_uuid(),
   store_id uuid references public.stores (id) on delete set null,
@@ -165,6 +176,9 @@ create index if not exists scan_alerts_status_idx on public.scan_alerts (status,
 create index if not exists scan_alerts_store_idx on public.scan_alerts (store_id, created_at desc);
 create index if not exists scan_alerts_code_idx on public.scan_alerts (scanned_code);
 create index if not exists admin_messages_active_idx on public.admin_messages (is_active, created_at desc);
+create index if not exists password_reset_requests_status_idx on public.password_reset_requests (status, requested_at desc);
+create index if not exists password_reset_requests_store_idx on public.password_reset_requests (store_id, requested_at desc);
+create index if not exists password_reset_requests_phone_idx on public.password_reset_requests (phone, requested_at desc);
 create index if not exists qr_codes_batch_id_idx on public.qr_codes (batch_id);
 create index if not exists rewards_active_idx on public.rewards (is_active, created_at desc);
 create index if not exists reward_redemptions_store_idx on public.reward_redemptions (store_id, created_at desc);
@@ -313,6 +327,7 @@ alter table public.stores enable row level security;
 alter table public.scans enable row level security;
 alter table public.scan_alerts enable row level security;
 alter table public.admin_messages enable row level security;
+alter table public.password_reset_requests enable row level security;
 alter table public.qr_batches enable row level security;
 alter table public.qr_codes enable row level security;
 alter table public.rewards enable row level security;
@@ -375,6 +390,8 @@ create policy "Public can manage admin messages"
   on public.admin_messages for all
   using (true)
   with check (true);
+
+grant all on table public.password_reset_requests to service_role;
 
 drop policy if exists "Public can read active rewards" on public.rewards;
 create policy "Public can read active rewards"

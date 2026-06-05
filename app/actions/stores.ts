@@ -121,6 +121,8 @@ export async function reviewStoreAction(formData: FormData) {
 export async function resetStorePasswordAction(formData: FormData) {
   const storeId = z.string().uuid().parse(formData.get("storeId"));
   const password = z.string().min(8).parse(formData.get("password"));
+  const rawRequestId = formData.get("requestId");
+  const requestId = typeof rawRequestId === "string" && rawRequestId ? z.string().uuid().parse(rawRequestId) : null;
   const { hash, salt } = hashPassword(password);
   const supabase = getSupabaseAdminClient();
 
@@ -134,8 +136,48 @@ export async function resetStorePasswordAction(formData: FormData) {
 
   if (error) redirect("/admin?message=password-reset-error");
 
+  if (requestId) {
+    await supabase
+      .from("password_reset_requests")
+      .update({
+        status: "RESOLVED",
+        resolved_at: new Date().toISOString(),
+        resolved_by: "admin"
+      })
+      .eq("id", requestId);
+  } else {
+    await supabase
+      .from("password_reset_requests")
+      .update({
+        status: "RESOLVED",
+        resolved_at: new Date().toISOString(),
+        resolved_by: "admin"
+      })
+      .eq("store_id", storeId)
+      .eq("status", "OPEN");
+  }
+
   revalidatePath("/admin");
   redirect("/admin?message=password-reset");
+}
+
+export async function resolvePasswordResetRequestAction(formData: FormData) {
+  const requestId = z.string().uuid().parse(formData.get("requestId"));
+  const supabase = getSupabaseAdminClient();
+
+  const { error } = await supabase
+    .from("password_reset_requests")
+    .update({
+      status: "RESOLVED",
+      resolved_at: new Date().toISOString(),
+      resolved_by: "admin"
+    })
+    .eq("id", requestId);
+
+  if (error) redirect("/admin?message=password-reset-request-resolve-error");
+
+  revalidatePath("/admin");
+  redirect("/admin?message=password-reset-request-resolved");
 }
 
 export async function updateStoreTierAction(formData: FormData) {

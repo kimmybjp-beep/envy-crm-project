@@ -4,6 +4,7 @@
 
 truncate table
   reward_redemptions,
+  password_reset_requests,
   scans,
   scan_alerts,
   qr_codes,
@@ -23,5 +24,6 @@ select
   (select count(*) from qr_batches) as qr_batches,
   (select count(*) from qr_code_counters) as qr_code_counters,
   (select count(*) from admin_messages) as admin_messages,
+  (select count(*) from password_reset_requests) as password_reset_requests,
   (select count(*) from rewards) as rewards,
   (select count(*) from reward_redemptions) as reward_redemptions;
