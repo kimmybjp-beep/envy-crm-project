@@ -1,13 +1,13 @@
-import { Database, Download, FileArchive } from "lucide-react";
+import { Database, Download, FileArchive, Palette } from "lucide-react";
 import { AdminShell, adminUi } from "@/components/admin-shell";
 import { QrGeneratorForm } from "@/components/qr-generator-form";
-import { getSupabaseClient } from "@/lib/supabase";
+import { getSupabaseAdminClient } from "@/lib/supabase-admin";
 import type { QrBatch } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function QrGeneratorPage() {
-  const supabase = getSupabaseClient();
+  const supabase = getSupabaseAdminClient();
   const { data: batches } = await supabase
     .from("qr_batches")
     .select("*")
@@ -16,7 +16,7 @@ export default async function QrGeneratorPage() {
     .returns<QrBatch[]>();
 
   return (
-    <AdminShell title="QR Generator" subtitle="Create distributor QR batches and download printable QR files">
+    <AdminShell title="QR Generator" subtitle="Create ENVY Partner Rewards sticker kits by distributor and apple size">
       <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 370px", gap: 18 }}>
         <QrGeneratorForm />
         <aside style={{ display: "grid", gap: 18 }}>
@@ -24,9 +24,10 @@ export default async function QrGeneratorPage() {
             <p style={{ margin: 0, color: adminUi.ruby, fontSize: 13, fontWeight: 950, letterSpacing: 1.8, textTransform: "uppercase" }}>
               What happens after Generate?
             </p>
-            <Info icon={<Database size={18} />} title="Saved to Supabase" text="Batch goes to qr_batches. Every 18-digit code goes to qr_codes." />
-            <Info icon={<FileArchive size={18} />} title="ZIP download" text="Browser downloads one ZIP containing SVG QR artwork files." />
-            <Info icon={<Download size={18} />} title="Local file only" text="The ZIP is downloaded to this computer. The QR image files are not stored in Supabase Storage yet." />
+            <Info icon={<Database size={18} />} title="Saved to Supabase" text="Batch goes to qr_batches. Every sticker QR goes to qr_codes with size, campaign, points, and claim status." />
+            <Info icon={<Palette size={18} />} title="Size color logic" text="Size 24 defaults to Red / Jumbo Bonus / 20 points. Size 30 and 36 default to 10 points." />
+            <Info icon={<FileArchive size={18} />} title="ZIP download" text="Browser downloads one ZIP containing printable SVG sticker files plus a CSV summary." />
+            <Info icon={<Download size={18} />} title="Distributor sticker kit" text="Print and pack stickers by distributor and apple size. Distributor only applies stickers after QC." />
           </section>
 
           <section style={{ ...adminUi.panel, padding: 22 }}>
@@ -39,8 +40,13 @@ export default async function QrGeneratorPage() {
               ) : (
                 (batches ?? []).map((batch) => (
                   <div key={batch.id} style={{ border: "1px solid rgba(101,0,19,.1)", borderRadius: 16, padding: 14 }}>
-                    <p style={{ margin: 0, fontWeight: 950 }}>{batch.distributor_name}</p>
-                    <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>{batch.quantity} QR codes</p>
+                    <p style={{ margin: 0, fontWeight: 950 }}>{batch.batch_name ?? batch.distributor_name}</p>
+                    <p style={{ margin: "5px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>
+                      {batch.quantity} stickers · Size {batch.apple_size ?? "-"} · {batch.point_value ?? 1} pts
+                    </p>
+                    <p style={{ margin: "5px 0 0", color: adminUi.ruby, fontSize: 12, fontWeight: 950 }}>
+                      {batch.status ?? "generated"} · {batch.campaign_name ?? "ENVY Rewards"}
+                    </p>
                   </div>
                 ))
               )}

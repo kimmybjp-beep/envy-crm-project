@@ -44,7 +44,7 @@ const checklistSections = [
     code: "QR",
     level: "Critical",
     items: [
-      "กรอก Distributor + จำนวน แล้วสร้าง QR unique 18 หลักได้",
+      "กรอก Distributor + Apple Size + จำนวน แล้วสร้าง QR sticker ID แบบ EV-Distributor-Size-Running ได้",
       "ข้อมูล batch และ code ถูกบันทึกใน Supabase",
       "ดาวน์โหลด ZIP รูป QR ได้ และ QR อ่านด้วยมือถือจริงได้"
     ]

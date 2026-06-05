@@ -17,6 +17,8 @@ type RegisterScanResult = {
 const scanMessages: Record<string, string> = {
   DUPLICATE_SCAN_IN_TIER: "โค้ดนี้ถูกสแกนไปแล้ว ระบบไม่สามารถบันทึกซ้ำได้",
   SAME_STORE_TIER2_DUPLICATE: "ระบบไม่อนุมัติ: QR นี้เคยถูกสแกนโดยร้านคุณแล้ว ระบบแจ้ง Admin ตรวจสอบแล้ว",
+  QR_NOT_FOUND: "ไม่พบ QR นี้ในระบบ กรุณาตรวจสอบว่าเป็นสติกเกอร์ ENVY Partner Rewards ที่ถูกต้อง",
+  QR_ALREADY_CLAIMED: "QR นี้ถูกใช้สะสมแต้มไปแล้ว",
   STORE_NOT_APPROVED: "ร้านยังไม่ได้รับอนุมัติ จึงยังสแกนไม่ได้",
   LOCKED_WITH_UNASSIGNED_TIER: "บัญชีร้านนี้ยังไม่พร้อมสแกน กรุณาติดต่อ Back Office",
   INVALID_SCAN_CODE: "โค้ด QR ไม่ถูกต้อง",

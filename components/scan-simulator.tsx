@@ -26,9 +26,9 @@ const scannerHints = new Map<DecodeHintType, unknown>([
   ]
 ]);
 
-export function ScanSimulator({ stores }: { stores: Store[] }) {
+export function ScanSimulator({ stores, initialCodes = [] }: { stores: Store[]; initialCodes?: string[] }) {
   const [storeId, setStoreId] = useState(stores[0]?.id ?? "");
-  const [codes, setCodes] = useState<string[]>([]);
+  const [codes, setCodes] = useState<string[]>(() => Array.from(new Set(initialCodes.map(normalizeCode).filter(Boolean))));
   const [statusMessage, setStatusMessage] = useState("");
   const [results, setResults] = useState<ScanResult[]>([]);
   const [isPending, setIsPending] = useState(false);

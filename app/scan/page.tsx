@@ -7,9 +7,15 @@ import type { Store } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
-export default async function ScanPage() {
+export default async function ScanPage({
+  searchParams
+}: {
+  searchParams?: Promise<{ code?: string }>;
+}) {
   const cookieStore = await cookies();
   const storeId = cookieStore.get("envy_store_id")?.value;
+  const params = await searchParams;
+  const initialCode = params?.code ? decodeURIComponent(params.code).trim() : "";
 
   if (!storeId) redirect("/login");
 
@@ -28,7 +34,7 @@ export default async function ScanPage() {
       title="Reward QR Scan"
       subtitle="Scan Apple ENVY reward QR codes with live camera"
     >
-      <ScanSimulator stores={[store]} />
+      <ScanSimulator stores={[store]} initialCodes={initialCode ? [initialCode] : []} />
     </SalesShell>
   );
 }

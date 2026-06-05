@@ -50,16 +50,37 @@ export type AdminMessage = {
 
 export type QrBatch = {
   id: string;
+  batch_name: string | null;
+  distributor_id: string | null;
   distributor_name: string;
+  apple_size: string | null;
+  sticker_color: string | null;
+  sticker_color_name: string | null;
+  point_value: number | null;
+  campaign_name: string | null;
   quantity: number;
+  generated_at: string | null;
+  generated_by: string | null;
+  status: string | null;
   created_at: string;
 };
 
 export type QrCodeRecord = {
   id: string;
   batch_id: string;
+  qr_code: string | null;
+  human_readable_code: string | null;
+  distributor_id: string | null;
   distributor_name: string;
+  apple_size: string | null;
+  sticker_color: string | null;
+  sticker_color_name: string | null;
+  point_value: number | null;
+  campaign_name: string | null;
   code: string;
+  status: string | null;
+  claimed_by_outlet_id: string | null;
+  claimed_at: string | null;
   created_at: string;
 };
 
