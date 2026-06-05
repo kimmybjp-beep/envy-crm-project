@@ -3,400 +3,138 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Apple ENVY Reward CRM - User Manual</title>
+  <title>คู่มือร้านค้า - ENVY Reward CRM</title>
   <style>
-    :root {
-      --ruby: #b50022;
-      --deep: #650013;
-      --ink: #171313;
-      --soft: #fff1f4;
-      --gold: #d9b76f;
-      --line: rgba(101, 0, 19, .16);
-    }
-
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      background: var(--soft);
-      color: var(--ink);
-      font-family: Arial, "Noto Sans Thai", Tahoma, sans-serif;
-      line-height: 1.65;
-    }
-
-    .page {
-      max-width: 980px;
-      margin: 0 auto;
-      padding: 34px 22px 64px;
-    }
-
-    .cover {
-      overflow: hidden;
-      position: relative;
-      border-radius: 30px;
-      padding: 34px;
-      color: #fff;
-      background: linear-gradient(135deg, var(--deep), var(--ruby) 62%, #e30b35);
-      box-shadow: 0 28px 80px rgba(101, 0, 19, .22);
-    }
-
-    .cover::after {
-      content: "";
-      position: absolute;
-      right: -90px;
-      top: -80px;
-      width: 320px;
-      height: 320px;
-      border-radius: 50%;
-      background:
-        radial-gradient(circle at 35% 35%, rgba(255,255,255,.48), transparent 18%),
-        radial-gradient(circle at 45% 45%, #f4435d, #8d0018 66%, #4a000d 100%);
-      opacity: .72;
-    }
-
-    .eyebrow {
-      margin: 0 0 8px;
-      color: rgba(255,255,255,.78);
-      font-size: 12px;
-      font-weight: 900;
-      letter-spacing: .22em;
-      text-transform: uppercase;
-    }
-
-    h1 {
-      position: relative;
-      z-index: 1;
-      margin: 0;
-      max-width: 680px;
-      font-size: clamp(36px, 7vw, 68px);
-      line-height: .95;
-      font-weight: 950;
-      letter-spacing: -.02em;
-    }
-
-    .cover p:last-child {
-      position: relative;
-      z-index: 1;
-      max-width: 640px;
-      margin: 16px 0 0;
-      color: rgba(255,255,255,.84);
-      font-size: 18px;
-      font-weight: 700;
-    }
-
-    .nav {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 12px;
-      margin: 22px 0;
-    }
-
-    .nav a, .card, .section {
-      border: 1px solid var(--line);
-      border-radius: 22px;
-      background: rgba(255,255,255,.94);
-      box-shadow: 0 16px 44px rgba(101, 0, 19, .08);
-    }
-
-    .nav a {
-      display: block;
-      padding: 16px 18px;
-      color: var(--ruby);
-      font-weight: 900;
-      text-decoration: none;
-    }
-
-    .section {
-      margin-top: 18px;
-      padding: 24px;
-    }
-
-    h2 {
-      margin: 0 0 12px;
-      color: var(--ruby);
-      font-size: 26px;
-      line-height: 1.2;
-      font-weight: 950;
-    }
-
-    h3 {
-      margin: 22px 0 8px;
-      font-size: 18px;
-      font-weight: 950;
-    }
-
-    ol, ul { padding-left: 24px; }
-    li { margin: 7px 0; }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 14px;
-    }
-
-    .card {
-      padding: 18px;
-    }
-
-    .card b {
-      display: block;
-      color: var(--ruby);
-      font-size: 15px;
-      margin-bottom: 6px;
-    }
-
-    .note {
-      border-left: 5px solid var(--gold);
-      border-radius: 16px;
-      background: #fff8e7;
-      padding: 14px 16px;
-      font-weight: 700;
-    }
-
-    .table {
-      width: 100%;
-      border-collapse: collapse;
-      overflow: hidden;
-      border-radius: 16px;
-      background: #fff;
-      border: 1px solid var(--line);
-    }
-
-    .table th, .table td {
-      padding: 12px 14px;
-      border-bottom: 1px solid var(--line);
-      text-align: left;
-      vertical-align: top;
-    }
-
-    .table th {
-      color: #fff;
-      background: var(--ruby);
-      font-size: 13px;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-    }
-
-    code {
-      border-radius: 7px;
-      background: #f6dfe5;
-      padding: 2px 6px;
-      color: var(--deep);
-      font-weight: 800;
-    }
-
-    .footer {
-      margin-top: 28px;
-      color: rgba(23,19,19,.58);
-      font-size: 13px;
-      text-align: center;
-    }
-
-    @media print {
-      body { background: #fff; }
-      .page { max-width: none; padding: 16mm; }
-      .nav { display: none; }
-      .section, .card, .cover { box-shadow: none; break-inside: avoid; }
-      a { color: inherit; }
-    }
+    :root { --ruby:#b50022; --deep:#650013; --ink:#171313; --soft:#fff1f4; --gold:#d9b76f; --line:rgba(101,0,19,.14); --green:#047857; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--soft); color:var(--ink); font-family:Arial,"Noto Sans Thai",Tahoma,sans-serif; line-height:1.65; }
+    .page { max-width:980px; margin:auto; padding:32px 20px 64px; }
+    .hero { position:relative; overflow:hidden; border-radius:30px; padding:34px; color:white; background:linear-gradient(135deg,var(--deep),var(--ruby) 62%,#e20d37); box-shadow:0 28px 80px rgba(101,0,19,.22); }
+    .hero:after { content:""; position:absolute; right:-80px; top:-80px; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle at 34% 34%,rgba(255,255,255,.52),transparent 17%), radial-gradient(circle,#ff3d5f,#8b001a 68%,#4a000d); opacity:.72; }
+    .eyebrow { margin:0 0 8px; color:rgba(255,255,255,.78); font-size:12px; font-weight:900; letter-spacing:.22em; text-transform:uppercase; }
+    h1 { position:relative; z-index:1; margin:0; max-width:720px; font-size:clamp(34px,7vw,62px); line-height:.96; font-weight:950; }
+    .hero p:last-child { position:relative; z-index:1; max-width:650px; margin:16px 0 0; color:rgba(255,255,255,.84); font-size:18px; font-weight:700; }
+    .nav { display:grid; grid-template-columns:repeat(auto-fit,minmax(160px,1fr)); gap:10px; margin:22px 0; }
+    .nav a,.section,.card { border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.96); box-shadow:0 16px 44px rgba(101,0,19,.08); }
+    .nav a { padding:13px 16px; color:var(--ruby); font-weight:900; text-decoration:none; }
+    .section { margin-top:18px; padding:24px; }
+    h2 { margin:0 0 12px; color:var(--ruby); font-size:26px; line-height:1.2; font-weight:950; }
+    h3 { margin:20px 0 8px; font-size:18px; font-weight:950; }
+    ol,ul { padding-left:24px; }
+    li { margin:7px 0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .card { padding:18px; }
+    .card b { display:block; color:var(--ruby); margin-bottom:6px; }
+    .note { border-left:5px solid var(--gold); border-radius:16px; background:#fff8e7; padding:14px 16px; font-weight:700; }
+    .good { border-left-color:var(--green); background:#ecfdf3; }
+    .table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; background:white; border:1px solid var(--line); }
+    .table th,.table td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    .table th { color:white; background:var(--ruby); font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+    code { border-radius:7px; background:#f6dfe5; padding:2px 6px; color:var(--deep); font-weight:800; }
+    .footer { margin-top:28px; color:rgba(23,19,19,.58); font-size:13px; text-align:center; }
+    @media print { body{background:white;} .page{max-width:none;padding:16mm;} .nav{display:none;} .section,.card,.hero{box-shadow:none;break-inside:avoid;} }
   </style>
 </head>
 <body>
   <main class="page">
-    <section class="cover">
-      <p class="eyebrow">Apple ENVY Reward CRM</p>
-      <h1>คู่มือการใช้งานระบบ ENVY Rewards</h1>
-      <p>สำหรับร้านค้า, Back Office Admin, การอนุมัติร้าน, การสแกน QR, การสะสมแต้ม, การแลกรางวัล, Dashboard และ Export ข้อมูล</p>
+    <section class="hero">
+      <p class="eyebrow">Store User Manual</p>
+      <h1>คู่มือร้านค้า ENVY Reward CRM</h1>
+      <p>สำหรับร้านค้าที่ได้รับอนุมัติแล้ว ใช้ Login, ดูแต้ม, สแกน QR ด้วย Live Camera และแลกของรางวัล</p>
     </section>
 
     <nav class="nav">
-      <a href="#overview">ภาพรวมระบบ</a>
-      <a href="#store">ร้านค้าใช้งาน</a>
-      <a href="#admin">Admin ใช้งาน</a>
-      <a href="#qr">QR Generator</a>
-      <a href="#dashboard">Dashboard / Data</a>
-      <a href="#support">แก้ปัญหาเบื้องต้น</a>
+      <a href="#login">Login</a>
+      <a href="#home">หน้า Home</a>
+      <a href="#scan">สแกน QR</a>
+      <a href="#rewards">แลกรางวัล</a>
+      <a href="#support">แก้ปัญหา</a>
     </nav>
 
-    <section class="section" id="overview">
-      <h2>1. ภาพรวมระบบ</h2>
+    <section class="section" id="login">
+      <h2>1. ก่อนเริ่มใช้งาน</h2>
       <div class="grid">
-        <div class="card">
-          <b>ร้านค้า</b>
-          สมัครร้าน, รออนุมัติ, Login ด้วยเบอร์โทร, สแกน QR เพื่อสะสมแต้ม, แลกของรางวัล
-        </div>
-        <div class="card">
-          <b>Back Office Admin</b>
-          อนุมัติร้าน, สร้าง QR batch, สร้าง reward, ดู dashboard, export data
-        </div>
-        <div class="card">
-          <b>ระบบกันสแกนซ้ำ</b>
-          QR code เดียวกันจะสแกนซ้ำใน tier เดียวกันไม่ได้ เพื่อกัน double count
-        </div>
+        <div class="card"><b>ต้องได้รับอนุมัติก่อน</b>ร้านค้าต้องมีสถานะ Approved จาก Back Office ก่อน จึงจะ Login และสแกน QR ได้</div>
+        <div class="card"><b>ใช้เบอร์โทร + รหัสผ่าน</b>Login ด้วยเบอร์โทรที่ใช้สมัครร้าน และ Password ที่ตั้งไว้ตอนลงทะเบียน</div>
+        <div class="card"><b>แนะนำเปิดผ่าน Browser จริง</b>ถ้าเปิดจาก LINE แล้วกล้องไม่ทำงาน ให้กดเปิดใน Safari หรือ Chrome</div>
       </div>
-      <p class="note">จำง่ายๆ: ร้านค้าต้องได้รับสถานะ <code>APPROVED</code> ก่อน ถึงจะ Login และ Scan ได้</p>
+
+      <h3>วิธี Login</h3>
+      <ol>
+        <li>เข้าเว็บไซต์ <code>https://envy-crm-project.vercel.app</code></li>
+        <li>กดปุ่ม <b>เข้าสู่ระบบร้านค้า</b></li>
+        <li>กรอกเบอร์โทรร้านค้า</li>
+        <li>กรอก Password</li>
+        <li>กด Login ระบบจะพาไปหน้า Home ของร้าน</li>
+      </ol>
+      <p class="note">ถ้าลืม Password ให้แจ้งทีม Back Office เพื่อ reset password ให้ใหม่</p>
     </section>
 
-    <section class="section" id="store">
-      <h2>2. คู่มือฝั่งร้านค้า</h2>
-      <h3>2.1 สมัครร้านใหม่</h3>
-      <ol>
-        <li>เปิดหน้าแรกของระบบ</li>
-        <li>กดปุ่ม <b>สมัครร้านใหม่</b></li>
-        <li>กรอกชื่อร้าน, ชื่อเจ้าของร้าน, เบอร์โทร, เลือก Tier</li>
-        <li>ใส่ URL รูปหน้าร้านถ้ามี</li>
-        <li>กดส่งสมัครร้าน</li>
-        <li>รอ Back Office อนุมัติ</li>
-      </ol>
-
-      <h3>2.2 Login เข้าระบบร้าน</h3>
-      <ol>
-        <li>กด <b>เข้าสู่ระบบร้านค้า</b></li>
-        <li>กรอกเบอร์โทรที่ใช้สมัครร้าน</li>
-        <li>กรอก Password ที่ตั้งไว้ตอนสมัครร้าน</li>
-        <li>ถ้าร้านอนุมัติแล้ว ระบบจะพาไปหน้า Home</li>
-      </ol>
-
-      <h3>2.3 หน้า Home ร้านค้า</h3>
+    <section class="section" id="home">
+      <h2>2. หน้า Home ของร้านค้า</h2>
+      <p>หลัง Login สำเร็จ ร้านค้าจะเห็นข้อมูลหลักดังนี้</p>
       <ul>
-        <li>แสดงชื่อร้าน</li>
-        <li>แสดงแต้มสะสม</li>
-        <li>ปุ่ม Scan QR</li>
-        <li>ปุ่ม Rewards สำหรับแลกของรางวัล</li>
+        <li>ชื่อร้านค้าและเบอร์โทร</li>
+        <li>แต้มสะสมปัจจุบัน</li>
         <li>ข้อความประกาศจาก Admin</li>
+        <li>ปุ่ม <b>สแกน</b> เพื่อบันทึก QR และสะสมแต้ม</li>
+        <li>ปุ่ม <b>แลกของรางวัล</b> เพื่อใช้แต้มแลก reward campaign</li>
       </ul>
-
-      <h3>2.4 วิธีสแกน QR จากรูปในมือถือ</h3>
-      <ol>
-        <li>เข้าเมนู <b>Scan</b></li>
-        <li>กด <b>Choose File</b></li>
-        <li>เลือกรูป QR ที่เซฟไว้ในมือถือ จะเลือกหลายรูปพร้อมกันได้</li>
-        <li>ระบบอ่าน QR และแสดงจำนวนที่พร้อมส่ง</li>
-        <li>กดบันทึก Scan</li>
-        <li>ถ้าสำเร็จ แต้มร้านจะเพิ่มอัตโนมัติ</li>
-      </ol>
-
-      <p class="note">ถ้าขึ้นข้อความ “โค้ดนี้ถูกสแกนใน Tier ของคุณไปแล้ว!” แปลว่า QR นี้เคยถูกใช้ใน tier นี้แล้ว</p>
+      <p class="note good">ถ้ามีประกาศจาก Admin ระบบจะแสดงบนหน้า Home และอาจเด้งเป็น popup หลัง Login</p>
     </section>
 
-    <section class="section" id="admin">
-      <h2>3. คู่มือฝั่ง Back Office Admin</h2>
-      <h3>3.1 Login Admin</h3>
+    <section class="section" id="scan">
+      <h2>3. วิธีสแกน QR เพื่อสะสมแต้ม</h2>
       <ol>
-        <li>เข้า <code>/admin/login</code></li>
-        <li>กรอกรหัส Admin Password</li>
-        <li>ระบบจะพาไปหน้า Store Approval</li>
+        <li>จากหน้า Home กดเมนู <b>Scan</b></li>
+        <li>กดปุ่ม <b>เปิดกล้อง</b></li>
+        <li>อนุญาตให้ Browser ใช้กล้อง</li>
+        <li>เล็ง QR ให้อยู่กลางกรอบ และให้แสงพอ</li>
+        <li>เมื่อระบบอ่าน QR ได้ จะเพิ่ม QR เข้าคิวรอบันทึก</li>
+        <li>กดปุ่ม <b>บันทึก QR ทั้งหมด</b></li>
+        <li>ระบบจะแสดงผลว่าสำเร็จกี่รายการ และไม่สำเร็จกี่รายการ</li>
       </ol>
 
-      <h3>3.2 อนุมัติร้าน</h3>
-      <ol>
-        <li>เข้า <code>/admin</code></li>
-        <li>ดูร้านที่รออนุมัติใน Pending queue</li>
-        <li>กด <b>Approve</b> เพื่อเปิดให้ร้าน Login และ Scan ได้</li>
-        <li>กด <b>Reject</b> ถ้าไม่อนุมัติ</li>
-      </ol>
-
-      <h3>3.3 ส่งข้อความประกาศให้ร้าน</h3>
-      <ol>
-        <li>เข้า <code>/admin</code></li>
-        <li>พิมพ์ข้อความในช่อง Admin broadcast message</li>
-        <li>กด Publish</li>
-        <li>ร้านค้าจะเห็นข้อความที่หน้า Home</li>
-      </ol>
-
-      <h3>3.4 Reset Password ให้ร้านค้า</h3>
-      <ol>
-        <li>เข้า <code>/admin</code></li>
-        <li>หาร้านที่ต้องการ reset password</li>
-        <li>พิมพ์ password ใหม่ในช่อง <b>New password</b></li>
-        <li>กด <b>Reset</b></li>
-        <li>แจ้ง password ใหม่ให้ร้านค้าใช้ Login ด้วยเบอร์ร้าน + password ใหม่</li>
-      </ol>
-    </section>
-
-    <section class="section" id="qr">
-      <h2>4. QR Generator</h2>
-      <ol>
-        <li>เข้า <code>/admin/qr-generator</code></li>
-        <li>กรอกชื่อ Distributor</li>
-        <li>กรอกจำนวน QR ที่ต้องการสร้าง</li>
-        <li>กด <b>Generate ZIP</b></li>
-        <li>ระบบจะบันทึก batch ไปที่ <code>qr_batches</code></li>
-        <li>ระบบจะบันทึก QR code ทุกตัวไปที่ <code>qr_codes</code></li>
-        <li>Browser จะดาวน์โหลด ZIP รูป QR สำหรับพิมพ์แจก</li>
-      </ol>
-      <p class="note">QR code เป็นรหัสสุ่ม 18 หลักแบบ unique ไม่ซ้ำกัน</p>
-    </section>
-
-    <section class="section" id="dashboard">
-      <h2>5. Dashboard, Rewards และ Export Data</h2>
+      <h3>ข้อความที่อาจพบตอนสแกน</h3>
       <table class="table">
-        <thead>
-          <tr>
-            <th>หน้า</th>
-            <th>ใช้ทำอะไร</th>
-          </tr>
-        </thead>
+        <thead><tr><th>ข้อความ</th><th>ความหมาย</th><th>วิธีทำต่อ</th></tr></thead>
         <tbody>
-          <tr>
-            <td><code>/admin/dashboard</code></td>
-            <td>ดูภาพรวม store, approved, pending, scans, points และแยก tier</td>
-          </tr>
-          <tr>
-            <td><code>/admin/dashboard/DISTRIBUTOR</code></td>
-            <td>ดูข้อมูลเฉพาะ Distributor</td>
-          </tr>
-          <tr>
-            <td><code>/admin/dashboard/TIER2</code></td>
-            <td>ดูข้อมูลเฉพาะ Tier 2</td>
-          </tr>
-          <tr>
-            <td><code>/admin/dashboard/TIER3</code></td>
-            <td>ดูข้อมูลเฉพาะ Tier 3</td>
-          </tr>
-          <tr>
-            <td><code>/admin/rewards</code></td>
-            <td>สร้างและแก้ไข reward catalog, ดูคำขอแลกรางวัล</td>
-          </tr>
-          <tr>
-            <td><code>/admin/database</code></td>
-            <td>ดูจำนวนแถว, preview raw data และ Export CSV เปิดใน Excel ได้</td>
-          </tr>
+          <tr><td>บันทึกสำเร็จ</td><td>QR ถูกต้องและยังไม่เคยใช้</td><td>แต้มจะเพิ่มให้ร้านโดยอัตโนมัติ</td></tr>
+          <tr><td>QR นี้ถูกใช้สะสมแต้มไปแล้ว</td><td>QR ถูก claim แล้ว</td><td>ไม่ต้องสแกนซ้ำ ใช้ QR ใหม่</td></tr>
+          <tr><td>ไม่พบ QR นี้ในระบบ</td><td>QR ไม่ใช่สติกเกอร์ ENVY ที่สร้างจากระบบ</td><td>ตรวจสอบ QR หรือแจ้งทีมงาน</td></tr>
+          <tr><td>ร้านยังไม่ได้รับอนุมัติ</td><td>สถานะร้านยังไม่เป็น Approved</td><td>ติดต่อ Back Office</td></tr>
         </tbody>
       </table>
+
+      <p class="note">ตอนนี้ระบบใช้ Live Camera เป็นหลัก ไม่ต้องเลือกรูป QR จากเครื่องแล้ว เพื่อให้ใช้งานหน้างานง่ายและลดความสับสน</p>
+    </section>
+
+    <section class="section" id="rewards">
+      <h2>4. วิธีแลกของรางวัล</h2>
+      <ol>
+        <li>จากหน้า Home กดเมนู <b>Rewards</b></li>
+        <li>ดูรายการของรางวัลและแต้มที่ต้องใช้</li>
+        <li>เลือก reward ที่ต้องการแลก</li>
+        <li>กดยืนยันการแลก</li>
+        <li>ระบบจะส่งคำขอไปให้ Back Office ตรวจสอบและจัดส่ง</li>
+      </ol>
+      <p class="note">หลังแลกรางวัลแล้ว คะแนนจะถูกหักตามเงื่อนไข reward และ Admin จะเห็นรายการในหน้า Redemption Fulfillment</p>
     </section>
 
     <section class="section" id="support">
-      <h2>6. แก้ปัญหาเบื้องต้น</h2>
+      <h2>5. แก้ปัญหาเบื้องต้น</h2>
       <table class="table">
-        <thead>
-          <tr>
-            <th>อาการ</th>
-            <th>วิธีเช็ก</th>
-          </tr>
-        </thead>
+        <thead><tr><th>ปัญหา</th><th>วิธีแก้</th></tr></thead>
         <tbody>
-          <tr>
-            <td>ร้าน Login ไม่ได้</td>
-            <td>เช็กว่าเบอร์โทรตรงกับที่สมัคร และ status เป็น <code>APPROVED</code></td>
-          </tr>
-          <tr>
-            <td>สแกนแล้วขึ้นซ้ำ</td>
-            <td>QR code นั้นเคยถูกสแกนใน tier เดียวกันแล้ว</td>
-          </tr>
-          <tr>
-            <td>QR Generator ไม่สำเร็จ</td>
-            <td>เช็ก Supabase env ใน Vercel และรัน SQL fix สำหรับ QR table แล้วหรือยัง</td>
-          </tr>
-          <tr>
-            <td>Export ไม่ออก</td>
-            <td>เช็กว่าเปิดจากหน้า Admin ที่ login แล้ว และตารางมีข้อมูล</td>
-          </tr>
+          <tr><td>กล้องไม่เปิดบน iPhone</td><td>เปิดเว็บผ่าน Safari หรือ Chrome โดยตรง และอนุญาตสิทธิ์กล้อง</td></tr>
+          <tr><td>เปิดจาก LINE แล้ว Google/Login ไม่ผ่าน</td><td>กดเปิดใน Browser ภายนอก หรือใช้ลิงก์ที่มี <code>openExternalBrowser=1</code></td></tr>
+          <tr><td>Login ไม่ได้</td><td>เช็กเบอร์โทร, Password และสถานะร้านว่าผ่าน Approved แล้วหรือยัง</td></tr>
+          <tr><td>แต้มไม่เพิ่ม</td><td>ตรวจสอบผลการบันทึก QR ถ้าขึ้นซ้ำหรือไม่พบ QR แต้มจะไม่เพิ่ม</td></tr>
         </tbody>
       </table>
     </section>
 
-    <p class="footer">Apple ENVY Reward CRM - T&G South East Asia (Thailand) Co., Ltd.</p>
+    <p class="footer">T&G South East Asia (Thailand) Co., Ltd. | Apple ENVY Reward CRM</p>
   </main>
 </body>
 </html>

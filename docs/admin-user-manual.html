@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>คู่มือ Admin - ENVY Reward CRM</title>
+  <style>
+    :root { --ruby:#b50022; --deep:#650013; --ink:#171313; --soft:#fff1f4; --gold:#d9b76f; --line:rgba(101,0,19,.14); --green:#047857; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--soft); color:var(--ink); font-family:Arial,"Noto Sans Thai",Tahoma,sans-serif; line-height:1.65; }
+    .page { max-width:1040px; margin:auto; padding:32px 20px 64px; }
+    .hero { position:relative; overflow:hidden; border-radius:30px; padding:34px; color:white; background:linear-gradient(135deg,var(--deep),var(--ruby) 62%,#e20d37); box-shadow:0 28px 80px rgba(101,0,19,.22); }
+    .hero:after { content:""; position:absolute; right:-80px; top:-80px; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle at 34% 34%,rgba(255,255,255,.52),transparent 17%), radial-gradient(circle,#ff3d5f,#8b001a 68%,#4a000d); opacity:.72; }
+    .eyebrow { margin:0 0 8px; color:rgba(255,255,255,.78); font-size:12px; font-weight:900; letter-spacing:.22em; text-transform:uppercase; }
+    h1 { position:relative; z-index:1; margin:0; max-width:760px; font-size:clamp(34px,7vw,62px); line-height:.96; font-weight:950; }
+    .hero p:last-child { position:relative; z-index:1; max-width:700px; margin:16px 0 0; color:rgba(255,255,255,.84); font-size:18px; font-weight:700; }
+    .nav { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin:22px 0; }
+    .nav a,.section,.card { border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.96); box-shadow:0 16px 44px rgba(101,0,19,.08); }
+    .nav a { padding:13px 16px; color:var(--ruby); font-weight:900; text-decoration:none; }
+    .section { margin-top:18px; padding:24px; }
+    h2 { margin:0 0 12px; color:var(--ruby); font-size:26px; line-height:1.2; font-weight:950; }
+    h3 { margin:20px 0 8px; font-size:18px; font-weight:950; }
+    ol,ul { padding-left:24px; }
+    li { margin:7px 0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; }
+    .card { padding:18px; }
+    .card b { display:block; color:var(--ruby); margin-bottom:6px; }
+    .note { border-left:5px solid var(--gold); border-radius:16px; background:#fff8e7; padding:14px 16px; font-weight:700; }
+    .table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; background:white; border:1px solid var(--line); }
+    .table th,.table td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    .table th { color:white; background:var(--ruby); font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+    code { border-radius:7px; background:#f6dfe5; padding:2px 6px; color:var(--deep); font-weight:800; }
+    .pill { display:inline-flex; border-radius:999px; padding:3px 9px; background:#fff1f4; color:var(--ruby); font-size:12px; font-weight:900; }
+    .footer { margin-top:28px; color:rgba(23,19,19,.58); font-size:13px; text-align:center; }
+    @media print { body{background:white;} .page{max-width:none;padding:16mm;} .nav{display:none;} .section,.card,.hero{box-shadow:none;break-inside:avoid;} }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Back Office Admin Manual</p>
+      <h1>คู่มือ Admin ENVY Reward CRM</h1>
+      <p>สำหรับทีม T&G Back Office ใช้ดูการอนุมัติร้าน, reset password, QR Generator, reward fulfillment, dashboard และ export report</p>
+    </section>
+
+    <nav class="nav">
+      <a href="#login">Login</a>
+      <a href="#stores">Store</a>
+      <a href="#qr">QR Generator</a>
+      <a href="#rewards">Rewards</a>
+      <a href="#dashboard">Dashboard</a>
+      <a href="#export">Export</a>
+      <a href="#line">LINE Bot</a>
+    </nav>
+
+    <section class="section" id="login">
+      <h2>1. การเข้าใช้งาน Admin</h2>
+      <ol>
+        <li>เข้า <code>https://envy-crm-project.vercel.app/admin/login</code></li>
+        <li>กรอก Admin Password</li>
+        <li>ระบบจะพาไปหน้า <code>/admin</code> สำหรับจัดการร้านค้า</li>
+      </ol>
+      <p class="note">หน้า Admin ไม่ควรส่งให้ร้านค้า ใช้เฉพาะทีม Back Office เท่านั้น</p>
+    </section>
+
+    <section class="section" id="stores">
+      <h2>2. Store Management</h2>
+      <h3>2.1 อนุมัติหรือปฏิเสธร้านค้า</h3>
+      <ol>
+        <li>เข้าเมนู <b>Stores</b> หรือ <code>/admin</code></li>
+        <li>ดูจำนวนร้านที่รออนุมัติใน Pending queue</li>
+        <li>ตรวจชื่อร้าน, เจ้าของร้าน, เบอร์โทร และรูปหน้าร้าน</li>
+        <li>กด <b>Approve</b> ถ้าข้อมูลถูกต้อง</li>
+        <li>กด <b>Reject</b> ถ้าข้อมูลไม่ผ่าน</li>
+      </ol>
+
+      <h3>2.2 Reset Password ให้ร้านค้า</h3>
+      <ol>
+        <li>หาแถวของร้านที่ต้องการ reset</li>
+        <li>พิมพ์ Password ใหม่ในช่อง <b>New password</b></li>
+        <li>กด <b>Reset</b></li>
+        <li>แจ้งร้านให้ Login ด้วยเบอร์โทรเดิมและ Password ใหม่</li>
+      </ol>
+
+      <h3>2.3 Store Login Popup Message</h3>
+      <ol>
+        <li>พิมพ์ข้อความประกาศในช่อง Store Login Popup Message</li>
+        <li>กด <b>Publish Popup</b></li>
+        <li>ข้อความจะเด้งหลังร้านค้า Login และแสดงบนหน้า Home</li>
+      </ol>
+
+      <h3>2.4 Suspicious Scan Alerts</h3>
+      <p>ถ้าระบบพบพฤติกรรมผิดปกติ เช่น QR ซ้ำหรือเข้ากฎ fraud ระบบจะสร้าง alert ให้ Admin ตรวจสอบ</p>
+      <ul>
+        <li>อ่านรายละเอียด alert</li>
+        <li>ตรวจชื่อร้านและ QR code ที่เกี่ยวข้อง</li>
+        <li>แจ้งทีมภาคสนามตรวจสอบถ้าจำเป็น</li>
+        <li>เมื่อเคลียร์แล้วกด <b>Resolve</b></li>
+      </ul>
+    </section>
+
+    <section class="section" id="qr">
+      <h2>3. QR Generator</h2>
+      <ol>
+        <li>เข้าเมนู <b>QR</b> หรือ <code>/admin/qr-generator</code></li>
+        <li>กรอก Distributor name</li>
+        <li>กรอก Distributor code ถ้าต้องการกำหนดเอง</li>
+        <li>กรอกจำนวน QR ที่ต้องการ</li>
+        <li>เลือก Apple size เช่น 24, 30, 36</li>
+        <li>ตั้ง Point value, Campaign name และ Sticker color</li>
+        <li>กด <b>Generate ZIP</b></li>
+      </ol>
+      <table class="table">
+        <thead><tr><th>ข้อมูล</th><th>เก็บที่ไหน</th><th>ใช้ทำอะไร</th></tr></thead>
+        <tbody>
+          <tr><td>QR Batch</td><td><code>qr_batches</code></td><td>เก็บรอบการสร้าง QR, distributor, size, campaign, จำนวน</td></tr>
+          <tr><td>QR Code รายตัว</td><td><code>qr_codes</code></td><td>เก็บ QR ID, URL, point value, status generated/claimed</td></tr>
+          <tr><td>เลขรันต่อเนื่อง</td><td><code>qr_code_counters</code></td><td>กันเลขซ้ำใน distributor/size เดียวกัน</td></tr>
+        </tbody>
+      </table>
+      <p class="note">หลัง Generate สำเร็จ Browser จะดาวน์โหลด ZIP ที่มีไฟล์ SVG sticker และ CSV summary ไว้ในเครื่อง</p>
+    </section>
+
+    <section class="section" id="rewards">
+      <h2>4. Reward Management</h2>
+      <h3>4.1 เพิ่มของรางวัล</h3>
+      <ol>
+        <li>เข้าเมนู <b>Rewards</b> หรือ <code>/admin/rewards</code></li>
+        <li>กรอก Reward name</li>
+        <li>กรอก Description</li>
+        <li>ใส่ Points required และ Stock</li>
+        <li>เลือก Active reward ถ้าต้องการให้ร้านเห็น</li>
+        <li>กด <b>Save Reward</b></li>
+      </ol>
+      <h3>4.2 จัดการคำขอแลกรางวัล</h3>
+      <ul>
+        <li><span class="pill">PENDING</span> ร้านส่งคำขอแลกเข้ามาแล้ว</li>
+        <li><span class="pill">PROCESSING</span> กำลังตรวจสอบหรือเตรียมส่งของ</li>
+        <li><span class="pill">PAID</span> ทำจ่ายหรือดำเนินการแล้ว</li>
+        <li><span class="pill">SHIPPED</span> ส่งของแล้ว</li>
+        <li><span class="pill">CANCELLED</span> ยกเลิกคำขอ</li>
+      </ul>
+    </section>
+
+    <section class="section" id="dashboard">
+      <h2>5. Interactive Dashboard</h2>
+      <p>Dashboard ใช้ดูภาพรวมการทำงานของระบบแบบ live จาก database</p>
+      <div class="grid">
+        <div class="card"><b>Total Stores</b>จำนวนร้านทั้งหมดตาม filter</div>
+        <div class="card"><b>Approved / Pending</b>จำนวนร้านที่อนุมัติแล้วและรออนุมัติ</div>
+        <div class="card"><b>QR Issued</b>จำนวน QR ที่สร้างในระบบ</div>
+        <div class="card"><b>QR Claimed</b>จำนวน QR ที่ร้านสแกนสะสมแต้มแล้ว</div>
+        <div class="card"><b>Claim Rate</b>เปอร์เซ็นต์ QR ที่ถูก claim เทียบกับที่สร้าง</div>
+        <div class="card"><b>Pending Fulfillment</b>จำนวนคำขอแลกรางวัลที่ยังค้าง</div>
+      </div>
+      <h3>Filter ที่ใช้ได้</h3>
+      <ul>
+        <li>By day</li>
+        <li>By week</li>
+        <li>By month</li>
+        <li>All time</li>
+        <li>By Tier</li>
+      </ul>
+      <p class="note">กราฟ QR Market Landing Graph แสดง flow: Distributor → Apple Size/Campaign → Store ที่ claim QR แล้ว</p>
+    </section>
+
+    <section class="section" id="export">
+      <h2>6. Data Export</h2>
+      <p>เข้าเมนู <b>Data</b> หรือ <code>/admin/database</code> เพื่อดาวน์โหลด CSV เปิดใน Excel</p>
+      <table class="table">
+        <thead><tr><th>Report</th><th>ใช้ดูอะไร</th></tr></thead>
+        <tbody>
+          <tr><td>QR Claim Report</td><td>QR ที่ถูก claim, ร้านที่ claim, แต้ม, วันที่ claim, distributor และ size</td></tr>
+          <tr><td>QR Inventory Report</td><td>QR ทั้งหมดที่สร้าง, batch, campaign, status และ URL</td></tr>
+          <tr><td>Reward Fulfillment Report</td><td>รายการแลกรางวัล, ร้านค้า, reward, แต้มที่ใช้ และสถานะจัดส่ง/ทำจ่าย</td></tr>
+          <tr><td>Raw Table Audit</td><td>Export ตารางดิบ เช่น stores, scans, qr_codes, rewards สำหรับตรวจเชิงเทคนิค</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section class="section" id="line">
+      <h2>7. LINE Bot และ Daily Summary</h2>
+      <ul>
+        <li>หน้า Dashboard มีปุ่ม <b>Send LINE Summary</b> สำหรับส่งสรุปเข้า LINE ทันที</li>
+        <li>ระบบรองรับ Vercel Cron สำหรับส่งสรุปรายวัน</li>
+        <li>บอทใน group จะเงียบถ้าไม่ได้พิมพ์คำสั่งที่กำหนด</li>
+      </ul>
+      <h3>คำสั่งหลัก</h3>
+      <ul>
+        <li><code>summary</code> หรือ <code>สรุป</code> เพื่อขอสรุป dashboard</li>
+        <li><code>groupid</code> หรือ <code>ขอรหัสกลุ่มหน่อย</code> เพื่อดู group id</li>
+      </ul>
+    </section>
+
+    <p class="footer">T&G South East Asia (Thailand) Co., Ltd. | Apple ENVY Reward CRM</p>
+  </main>
+</body>
+</html>

@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   const html = await readFile(
-    path.join(process.cwd(), "docs", "user-manual.html"),
+    path.join(process.cwd(), "docs", "manual-index.html"),
     "utf8"
   );
 

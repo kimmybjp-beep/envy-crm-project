@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ENVY Reward CRM - คู่มือระบบ</title>
+  <style>
+    :root { --ruby:#b50022; --deep:#650013; --ink:#171313; --soft:#fff1f4; --gold:#d9b76f; --line:rgba(101,0,19,.14); }
+    * { box-sizing: border-box; }
+    body { margin:0; background:var(--soft); color:var(--ink); font-family:Arial,"Noto Sans Thai",Tahoma,sans-serif; line-height:1.6; }
+    .page { max-width:980px; margin:auto; padding:32px 20px 64px; }
+    .hero { position:relative; overflow:hidden; border-radius:30px; padding:34px; color:white; background:linear-gradient(135deg,var(--deep),var(--ruby) 62%,#e20d37); box-shadow:0 28px 80px rgba(101,0,19,.22); }
+    .hero:after { content:""; position:absolute; right:-86px; top:-86px; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle at 34% 34%,rgba(255,255,255,.52),transparent 17%), radial-gradient(circle,#ff3d5f,#8b001a 68%,#4a000d); opacity:.72; }
+    .eyebrow { margin:0 0 8px; color:rgba(255,255,255,.78); font-size:12px; font-weight:900; letter-spacing:.22em; text-transform:uppercase; }
+    h1 { position:relative; z-index:1; margin:0; font-size:clamp(36px,7vw,64px); line-height:.96; font-weight:950; }
+    .hero p:last-child { position:relative; z-index:1; max-width:660px; margin:16px 0 0; color:rgba(255,255,255,.84); font-size:18px; font-weight:700; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:16px; margin-top:22px; }
+    .card { display:block; min-height:220px; padding:22px; border:1px solid var(--line); border-radius:24px; background:rgba(255,255,255,.96); color:var(--ink); text-decoration:none; box-shadow:0 18px 50px rgba(101,0,19,.1); }
+    .card small { display:inline-flex; border-radius:999px; padding:7px 11px; background:#fff1f4; color:var(--ruby); font-weight:950; letter-spacing:.1em; text-transform:uppercase; }
+    .card h2 { margin:18px 0 8px; color:var(--ruby); font-size:28px; line-height:1.15; }
+    .card p { margin:0; color:rgba(23,19,19,.62); }
+    .actions { margin-top:20px; display:flex; gap:10px; flex-wrap:wrap; }
+    .button { display:inline-flex; border-radius:16px; padding:13px 18px; background:var(--ruby); color:white; font-weight:900; text-decoration:none; box-shadow:0 14px 34px rgba(169,0,31,.2); }
+    .note { margin-top:20px; border-left:5px solid var(--gold); border-radius:18px; background:#fff8e7; padding:16px 18px; font-weight:700; }
+    .footer { margin-top:30px; text-align:center; color:rgba(23,19,19,.55); font-size:13px; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Apple ENVY Reward CRM</p>
+      <h1>ศูนย์คู่มือการใช้งาน</h1>
+      <p>รวมเอกสารภาษาไทยสำหรับร้านค้า, การลงทะเบียนร้านค้าใหม่ และ Back Office Admin</p>
+    </section>
+
+    <section class="grid" aria-label="Manual links">
+      <a class="card" href="/manual/store">
+        <small>Store User</small>
+        <h2>คู่มือร้านค้า</h2>
+        <p>สำหรับร้านค้าที่ได้รับอนุมัติแล้ว ใช้ดูวิธี Login, ดูแต้ม, สแกน QR ด้วย Live Camera และแลกของรางวัล</p>
+        <span class="actions"><span class="button">เปิดคู่มือร้านค้า</span></span>
+      </a>
+      <a class="card" href="/manual/register">
+        <small>New Outlet</small>
+        <h2>คู่มือลงทะเบียนร้านค้าใหม่</h2>
+        <p>สำหรับทีมงานหรือร้านค้าใหม่ ใช้ดูขั้นตอนกรอกข้อมูล, ตั้งรหัสผ่าน, ถ่ายรูปหน้าร้าน และรออนุมัติ</p>
+        <span class="actions"><span class="button">เปิดคู่มือลงทะเบียน</span></span>
+      </a>
+      <a class="card" href="/manual/admin">
+        <small>Back Office</small>
+        <h2>คู่มือ Admin</h2>
+        <p>สำหรับทีม T&G Back Office ใช้ดูการอนุมัติร้าน, reset password, สร้าง QR, จัดการ reward, dashboard และ export report</p>
+        <span class="actions"><span class="button">เปิดคู่มือ Admin</span></span>
+      </a>
+    </section>
+
+    <p class="note">ทุกหน้าเอกสารสามารถกด Print หรือ Save as PDF จาก Browser ได้ทันที เหมาะสำหรับส่งต่อให้ทีมงานหรือร้านค้าเปิดบนมือถือ</p>
+    <p class="footer">T&G South East Asia (Thailand) Co., Ltd. | Apple ENVY Reward CRM</p>
+  </main>
+</body>
+</html>

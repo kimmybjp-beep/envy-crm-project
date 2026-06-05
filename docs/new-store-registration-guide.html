@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>คู่มือลงทะเบียนร้านค้าใหม่ - ENVY Reward CRM</title>
+  <style>
+    :root { --ruby:#b50022; --deep:#650013; --ink:#171313; --soft:#fff1f4; --gold:#d9b76f; --line:rgba(101,0,19,.14); }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--soft); color:var(--ink); font-family:Arial,"Noto Sans Thai",Tahoma,sans-serif; line-height:1.65; }
+    .page { max-width:980px; margin:auto; padding:32px 20px 64px; }
+    .hero { position:relative; overflow:hidden; border-radius:30px; padding:34px; color:white; background:linear-gradient(135deg,var(--deep),var(--ruby) 62%,#e20d37); box-shadow:0 28px 80px rgba(101,0,19,.22); }
+    .hero:after { content:""; position:absolute; right:-80px; top:-80px; width:300px; height:300px; border-radius:50%; background:radial-gradient(circle at 34% 34%,rgba(255,255,255,.52),transparent 17%), radial-gradient(circle,#ff3d5f,#8b001a 68%,#4a000d); opacity:.72; }
+    .eyebrow { margin:0 0 8px; color:rgba(255,255,255,.78); font-size:12px; font-weight:900; letter-spacing:.22em; text-transform:uppercase; }
+    h1 { position:relative; z-index:1; margin:0; max-width:720px; font-size:clamp(34px,7vw,62px); line-height:.96; font-weight:950; }
+    .hero p:last-child { position:relative; z-index:1; max-width:650px; margin:16px 0 0; color:rgba(255,255,255,.84); font-size:18px; font-weight:700; }
+    .section,.card { border:1px solid var(--line); border-radius:22px; background:rgba(255,255,255,.96); box-shadow:0 16px 44px rgba(101,0,19,.08); }
+    .section { margin-top:18px; padding:24px; }
+    h2 { margin:0 0 12px; color:var(--ruby); font-size:26px; line-height:1.2; font-weight:950; }
+    h3 { margin:20px 0 8px; font-size:18px; font-weight:950; }
+    ol,ul { padding-left:24px; }
+    li { margin:7px 0; }
+    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:14px; margin-top:12px; }
+    .card { padding:18px; }
+    .card b { display:block; color:var(--ruby); margin-bottom:6px; }
+    .note { border-left:5px solid var(--gold); border-radius:16px; background:#fff8e7; padding:14px 16px; font-weight:700; }
+    .warning { border-left-color:var(--ruby); background:#fff1f4; }
+    .table { width:100%; border-collapse:collapse; overflow:hidden; border-radius:16px; background:white; border:1px solid var(--line); }
+    .table th,.table td { padding:12px 14px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; }
+    .table th { color:white; background:var(--ruby); font-size:13px; letter-spacing:.08em; text-transform:uppercase; }
+    code { border-radius:7px; background:#f6dfe5; padding:2px 6px; color:var(--deep); font-weight:800; }
+    .footer { margin-top:28px; color:rgba(23,19,19,.58); font-size:13px; text-align:center; }
+    @media print { body{background:white;} .page{max-width:none;padding:16mm;} .section,.card,.hero{box-shadow:none;break-inside:avoid;} }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">New Outlet Registration</p>
+      <h1>คู่มือลงทะเบียนร้านค้าใหม่</h1>
+      <p>สำหรับร้านค้าใหม่ที่ต้องการเข้าร่วม ENVY Reward CRM ก่อนเริ่มสะสมแต้มและแลกของรางวัล</p>
+    </section>
+
+    <section class="section">
+      <h2>1. เตรียมข้อมูลก่อนลงทะเบียน</h2>
+      <div class="grid">
+        <div class="card"><b>ชื่อร้าน</b>ใช้ชื่อร้านจริงที่ทีมงานตรวจสอบได้</div>
+        <div class="card"><b>ชื่อเจ้าของร้าน</b>ใช้ชื่อผู้ประสานงานหลักหรือเจ้าของร้าน</div>
+        <div class="card"><b>เบอร์โทร</b>เบอร์นี้จะใช้ Login เข้าระบบหลังได้รับอนุมัติ</div>
+        <div class="card"><b>Password</b>ตั้งรหัสผ่านอย่างน้อย 8 ตัวอักษร และควรเก็บไว้ให้ดี</div>
+        <div class="card"><b>รูปหน้าร้าน</b>ต้องเห็นหน้าร้านและป้ายชื่อร้านชัดเจน</div>
+        <div class="card"><b>ตำแหน่งร้าน</b>ระบบจะเก็บพิกัดจากมือถืออัตโนมัติ ถ้า Browser ขอสิทธิ์ Location ให้กดอนุญาต</div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>2. ขั้นตอนลงทะเบียน</h2>
+      <ol>
+        <li>เปิดเว็บไซต์ <code>https://envy-crm-project.vercel.app/register</code></li>
+        <li>กรอก <b>ชื่อร้าน</b></li>
+        <li>กรอก <b>ชื่อเจ้าของร้าน</b></li>
+        <li>กรอก <b>เบอร์โทร</b> ที่ร้านจะใช้ Login</li>
+        <li>ตั้ง <b>Password</b> และกรอก Confirm Password ให้ตรงกัน</li>
+        <li>กดปุ่ม <b>ถ่ายรูปหน้าร้าน</b></li>
+        <li>ถ่ายรูปหน้าร้านโดยให้เห็นป้ายชื่อร้านชัดเจน</li>
+        <li>กด <b>ส่งสมัครร้าน</b></li>
+        <li>ระบบจะแสดง popup ว่า <b>ลงทะเบียนร้านเรียบร้อย โปรดรออนุมัติ</b></li>
+      </ol>
+      <p class="note warning">สำคัญ: *กรุณาถ่ายรูปหน้าร้านที่มีป้ายชื่อร้าน เพื่อให้ Back Office ตรวจสอบและอนุมัติได้เร็วขึ้น</p>
+    </section>
+
+    <section class="section">
+      <h2>3. หลังส่งสมัครแล้วจะเกิดอะไรขึ้น</h2>
+      <table class="table">
+        <thead><tr><th>สถานะ</th><th>ความหมาย</th><th>สิ่งที่ร้านต้องทำ</th></tr></thead>
+        <tbody>
+          <tr><td>Pending approval</td><td>ส่งข้อมูลสำเร็จ รอ Back Office ตรวจสอบ</td><td>รอแจ้งผลจากทีมงาน</td></tr>
+          <tr><td>Approved</td><td>ร้านได้รับอนุมัติแล้ว</td><td>Login ด้วยเบอร์โทรและ Password ที่ตั้งไว้</td></tr>
+          <tr><td>Rejected</td><td>ข้อมูลไม่ผ่านหรือรูปไม่ชัด</td><td>ติดต่อทีมงานเพื่อแก้ไขหรือส่งสมัครใหม่</td></tr>
+        </tbody>
+      </table>
+      <p class="note">ร้านที่ยังไม่ Approved จะยัง Login เพื่อสแกน QR ไม่ได้ และยังไม่สามารถสะสมแต้มได้</p>
+    </section>
+
+    <section class="section">
+      <h2>4. Checklist รูปหน้าร้านที่ควรถ่าย</h2>
+      <ul>
+        <li>เห็นป้ายชื่อร้านหรือชื่อร้านชัดเจน</li>
+        <li>เห็นบริเวณหน้าร้าน ไม่ถ่ายใกล้จนเกินไป</li>
+        <li>ไม่มืด ไม่เบลอ และไม่มีนิ้วบังเลนส์</li>
+        <li>ถ่ายจากมือถือของร้านหรือทีมงานที่อยู่หน้างานจริง</li>
+        <li>ถ้าเปิดจาก LINE แล้วกล้องไม่ขึ้น ให้เปิดลิงก์ผ่าน Safari หรือ Chrome</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>5. คำถามที่พบบ่อย</h2>
+      <table class="table">
+        <thead><tr><th>คำถาม</th><th>คำตอบ</th></tr></thead>
+        <tbody>
+          <tr><td>ต้องเลือก Tier เองไหม</td><td>ไม่ต้อง ระบบและ Back Office จะจัดการข้อมูล tier ให้ด้านหลัง ร้านค้าไม่ต้องกรอกเอง</td></tr>
+          <tr><td>ลืม Password ทำอย่างไร</td><td>แจ้ง Back Office เพื่อ reset password ให้ใหม่</td></tr>
+          <tr><td>สมัครซ้ำได้ไหม</td><td>ถ้าเคยส่งสมัครแล้ว ระบบอาจแจ้งว่าร้านนี้ส่งคำขอแล้ว ให้รออนุมัติหรือติดต่อทีมงาน</td></tr>
+          <tr><td>ทำไมต้องเก็บพิกัด</td><td>เพื่อช่วยยืนยันตำแหน่งร้านและลดปัญหาร้านซ้ำหรือข้อมูลผิดพลาด</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <p class="footer">T&G South East Asia (Thailand) Co., Ltd. | Apple ENVY Reward CRM</p>
+  </main>
+</body>
+</html>
