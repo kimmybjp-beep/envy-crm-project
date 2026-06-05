@@ -26,7 +26,7 @@ export default async function ScanPage() {
   return (
     <SalesShell
       title="Reward QR Scan"
-      subtitle="Upload saved QR images from your phone to collect points"
+      subtitle="Scan Apple ENVY reward QR codes with live camera"
     >
       <ScanSimulator stores={[store]} />
     </SalesShell>

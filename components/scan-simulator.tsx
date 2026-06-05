@@ -34,7 +34,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
   const [isPending, setIsPending] = useState(false);
   const [cameraActive, setCameraActive] = useState(false);
   const [cameraStatus, setCameraStatus] = useState("ยังไม่ได้เปิดกล้อง");
-  const [manualCode, setManualCode] = useState("");
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const readerRef = useRef<BrowserMultiFormatReader | null>(null);
   const controlsRef = useRef<IScannerControls | null>(null);
@@ -155,15 +154,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
     }
   }
 
-  function addManualCode() {
-    const code = normalizeCode(manualCode);
-    if (!code) return;
-
-    addCodes([code]);
-    setManualCode("");
-    setStatusMessage("เพิ่มรหัส QR สำรองเข้าคิวแล้ว");
-  }
-
   function addCodes(nextCodes: string[]) {
     setCodes((currentCodes) => Array.from(new Set([...currentCodes, ...nextCodes.map(normalizeCode).filter(Boolean)])));
   }
@@ -228,21 +218,6 @@ export function ScanSimulator({ stores }: { stores: Store[] }) {
           <p className="mt-3 text-xs text-charcoal/55">
             บน iPhone ให้เปิดผ่าน Safari/Chrome จริง ถ้าเปิดจาก LINE แล้วกล้องไม่ขึ้น ให้กดเปิดใน browser ภายนอก
           </p>
-        </div>
-
-        <div className="rounded-lg border border-ruby-900/10 bg-white p-4">
-          <p className="mb-3 font-semibold text-charcoal">กรอกรหัสสำรอง ถ้ากล้องอ่านไม่ได้</p>
-          <div className="grid grid-cols-[1fr_auto] gap-2">
-            <input
-              value={manualCode}
-              onChange={(event) => setManualCode(event.target.value)}
-              placeholder="กรอกรหัส QR 18 หลัก"
-              className="field-control"
-            />
-            <button type="button" onClick={addManualCode} className="rounded-xl bg-ruby-900 px-4 font-black text-white">
-              Add
-            </button>
-          </div>
         </div>
 
         {statusMessage ? <p className="rounded-lg bg-ruby-50 px-4 py-3 text-sm font-semibold text-ruby-900">{statusMessage}</p> : null}
