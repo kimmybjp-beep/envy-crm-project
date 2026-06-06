@@ -7,6 +7,7 @@ export type Store = {
   name: string;
   owner_name: string;
   phone: string;
+  province: string | null;
   password_hash?: string | null;
   password_salt?: string | null;
   latitude: number | null;

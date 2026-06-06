@@ -30,6 +30,7 @@ create table if not exists public.stores (
   name text not null,
   owner_name text not null,
   phone text not null,
+  province text,
   password_hash text,
   password_salt text,
   latitude numeric(10, 7),
@@ -46,6 +47,7 @@ alter table public.stores
   add column if not exists name text,
   add column if not exists owner_name text,
   add column if not exists phone text,
+  add column if not exists province text,
   add column if not exists password_hash text,
   add column if not exists password_salt text,
   add column if not exists latitude numeric(10, 7),
@@ -595,10 +597,6 @@ begin
     return jsonb_build_object('ok', false, 'code', 'QR_NOT_FOUND');
   end if;
 
-  if v_qr_code.status = 'claimed' then
-    return jsonb_build_object('ok', false, 'code', 'QR_ALREADY_CLAIMED');
-  end if;
-
   if v_qr_code.status = 'void' then
     return jsonb_build_object('ok', false, 'code', 'QR_NOT_FOUND');
   end if;
@@ -657,7 +655,10 @@ begin
   returning * into v_scan;
 
   update public.qr_codes
-  set status = 'claimed', claimed_by_outlet_id = v_store.id, claimed_at = now()
+  set
+    status = 'claimed',
+    claimed_by_outlet_id = coalesce(claimed_by_outlet_id, v_store.id),
+    claimed_at = coalesce(claimed_at, now())
   where id = v_qr_code.id;
 
   update public.stores set points = points + v_points where id = v_store.id;

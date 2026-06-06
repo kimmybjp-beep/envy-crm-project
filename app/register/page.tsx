@@ -6,6 +6,23 @@ import { LuxuryButton, PremiumInput, PremiumPanel } from "@/components/premium-p
 import { RegistrationSuccessPopup } from "@/components/registration-success-popup";
 import { StorefrontCaptureFields } from "@/components/storefront-capture-fields";
 
+const thaiProvinces = [
+  "กรุงเทพมหานคร", "กระบี่", "กาญจนบุรี", "กาฬสินธุ์", "กำแพงเพชร", "ขอนแก่น",
+  "จันทบุรี", "ฉะเชิงเทรา", "ชลบุรี", "ชัยนาท", "ชัยภูมิ", "ชุมพร",
+  "เชียงราย", "เชียงใหม่", "ตรัง", "ตราด", "ตาก", "นครนายก",
+  "นครปฐม", "นครพนม", "นครราชสีมา", "นครศรีธรรมราช", "นครสวรรค์",
+  "นนทบุรี", "นราธิวาส", "น่าน", "บึงกาฬ", "บุรีรัมย์", "ปทุมธานี",
+  "ประจวบคีรีขันธ์", "ปราจีนบุรี", "ปัตตานี", "พระนครศรีอยุธยา",
+  "พะเยา", "พังงา", "พัทลุง", "พิจิตร", "พิษณุโลก", "เพชรบุรี",
+  "เพชรบูรณ์", "แพร่", "ภูเก็ต", "มหาสารคาม", "มุกดาหาร", "แม่ฮ่องสอน",
+  "ยโสธร", "ยะลา", "ร้อยเอ็ด", "ระนอง", "ระยอง", "ราชบุรี",
+  "ลพบุรี", "ลำปาง", "ลำพูน", "เลย", "ศรีสะเกษ", "สกลนคร",
+  "สงขลา", "สตูล", "สมุทรปราการ", "สมุทรสงคราม", "สมุทรสาคร",
+  "สระแก้ว", "สระบุรี", "สิงห์บุรี", "สุโขทัย", "สุพรรณบุรี",
+  "สุราษฎร์ธานี", "สุรินทร์", "หนองคาย", "หนองบัวลำภู", "อ่างทอง",
+  "อำนาจเจริญ", "อุดรธานี", "อุตรดิตถ์", "อุทัยธานี", "อุบลราชธานี"
+];
+
 export default async function RegisterPage({
   searchParams
 }: {
@@ -46,6 +63,14 @@ export default async function RegisterPage({
             <div className="grid gap-4 sm:grid-cols-2">
               <PremiumInput label="เบอร์โทร">
                 <input name="phone" required placeholder="08x-xxx-xxxx" className="field-control" />
+              </PremiumInput>
+              <PremiumInput label="จังหวัด">
+                <select name="province" required defaultValue="" className="field-control">
+                  <option value="" disabled>เลือกจังหวัด</option>
+                  {thaiProvinces.map((province) => (
+                    <option key={province} value={province}>{province}</option>
+                  ))}
+                </select>
               </PremiumInput>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">

@@ -114,7 +114,7 @@ export default async function AdminPage({
               <div>
                 <b style={{ color: adminUi.charcoal }}>{store?.name ?? "Unknown store"}</b>
                 <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.58)", fontSize: 13 }}>
-                  {store?.owner_name ?? "No matched store"} - {request.phone}
+                  {store?.owner_name ?? "No matched store"} - {request.phone}{store?.province ? ` - ${store.province}` : ""}
                 </p>
               </div>
               <div>
@@ -273,7 +273,7 @@ export default async function AdminPage({
                 )}
                 <div>
                   <p style={{ margin: 0, fontWeight: 950, color: adminUi.charcoal }}>{store.name}</p>
-                  <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.55)", fontSize: 13 }}>{store.owner_name} - {store.phone}</p>
+                  <p style={{ margin: "4px 0 0", color: "rgba(21,19,19,.55)", fontSize: 13 }}>{store.owner_name} - {store.phone}{store.province ? ` - ${store.province}` : ""}</p>
                   {store.image_url ? (
                     <a href={store.image_url} target="_blank" rel="noreferrer" style={{ display: "inline-flex", marginTop: 8, color: adminUi.ruby, fontSize: 12, fontWeight: 950, textDecoration: "none" }}>
                       View storefront photo

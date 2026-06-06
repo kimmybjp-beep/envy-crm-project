@@ -41,8 +41,11 @@ export default async function AdminDashboardPage({
   const storeMatchesTier = (store: Store | undefined) => selectedTier === "ALL" || store?.tier === selectedTier;
   const qrMatchesTier = (qrCode: QrCodeRecord) => {
     if (selectedTier === "ALL" || selectedTier === "DISTRIBUTOR") return true;
-    const claimedStore = qrCode.claimed_by_outlet_id ? storesById.get(qrCode.claimed_by_outlet_id) : undefined;
-    return claimedStore?.tier === selectedTier;
+    const code = normalizeScanCode(getQrDisplayCode(qrCode));
+    return scanRows.some((scan) => {
+      const store = scan.store_id ? storesById.get(scan.store_id) : undefined;
+      return normalizeScanCode(scan.scanned_code) === code && (scan.tier_level === selectedTier || store?.tier === selectedTier);
+    });
   };
 
   const filteredStores = storeRows.filter((store) => storeMatchesTier(store));
@@ -72,7 +75,7 @@ export default async function AdminDashboardPage({
   const qrPointsClaimed = qrClaimRows.reduce((sum, qrCode) => sum + (qrCode.point_value ?? 0), 0);
   const distributorSummaries = buildQrDistributorSummaries(qrRows, storesById);
   const sizeSummaries = buildQrSizeSummaries(qrRows);
-  const qrNetwork = buildQrNetwork({ qrCodes: qrRows, storesById });
+  const qrNetwork = buildQrNetwork({ qrCodes: qrRows, scans: filteredScans, storesById });
 
   return (
     <AdminShell title="Interactive Dashboard" subtitle="Track QR issue, claims, points, rewards, and store activity">
@@ -312,8 +315,10 @@ type QrSizeSummary = {
 };
 
 type QrClaimNode = {
+  storeId: string;
   storeName: string;
   storeTier: StoreTier;
+  tierLevel: StoreTier;
   qrCode: string;
   claimedAt: string | null;
   pointValue: number;
@@ -417,12 +422,22 @@ function buildQrSizeSummaries(qrCodes: QrCodeRecord[]): QrSizeSummary[] {
 
 function buildQrNetwork({
   qrCodes,
+  scans,
   storesById
 }: {
   qrCodes: QrCodeRecord[];
+  scans: Scan[];
   storesById: Map<string, Store>;
 }): QrNetworkGroup[] {
   const groups = new Map<string, QrNetworkGroup & { sizesByKey: Map<string, QrSizeNetwork> }>();
+  const scansByCode = new Map<string, Scan[]>();
+
+  for (const scan of scans) {
+    const code = normalizeScanCode(scan.scanned_code);
+    const group = scansByCode.get(code) ?? [];
+    group.push(scan);
+    scansByCode.set(code, group);
+  }
 
   for (const qrCode of qrCodes) {
     const distributorName = getQrDistributorName(qrCode);
@@ -450,18 +465,41 @@ function buildQrNetwork({
     group.totalCodes += 1;
     sizeNode.totalCodes += 1;
 
-    if (isQrClaimed(qrCode)) {
-      const store = qrCode.claimed_by_outlet_id ? storesById.get(qrCode.claimed_by_outlet_id) : undefined;
+    const pointValue = qrCode.point_value ?? 0;
+    const qrDisplayCode = getQrDisplayCode(qrCode);
+    const qrScans = scansByCode.get(normalizeScanCode(qrDisplayCode)) ?? [];
+    const legacyClaimStore = qrCode.claimed_by_outlet_id ? storesById.get(qrCode.claimed_by_outlet_id) : undefined;
+    const hasClaim = qrScans.length > 0 || isQrClaimed(qrCode);
+
+    if (hasClaim) {
       group.claimedCount += 1;
-      group.totalPointsClaimed += qrCode.point_value ?? 0;
+      group.totalPointsClaimed += qrScans.length ? qrScans.length * pointValue : pointValue;
       sizeNode.claimedCount += 1;
-      sizeNode.claims.push({
-        storeName: store?.name ?? "Unknown store",
-        storeTier: store?.tier ?? "UNASSIGNED",
-        qrCode: getQrDisplayCode(qrCode),
-        claimedAt: qrCode.claimed_at,
-        pointValue: qrCode.point_value ?? 0
-      });
+
+      if (qrScans.length) {
+        for (const scan of qrScans) {
+          const store = scan.store_id ? storesById.get(scan.store_id) : undefined;
+          sizeNode.claims.push({
+            storeId: store?.id ?? scan.store_id ?? `${qrDisplayCode}-${scan.tier_level}`,
+            storeName: store?.name ?? "Unknown store",
+            storeTier: store?.tier ?? scan.tier_level,
+            tierLevel: scan.tier_level,
+            qrCode: qrDisplayCode,
+            claimedAt: scan.scanned_at,
+            pointValue
+          });
+        }
+      } else {
+        sizeNode.claims.push({
+          storeId: legacyClaimStore?.id ?? qrCode.claimed_by_outlet_id ?? `${qrDisplayCode}-legacy`,
+          storeName: legacyClaimStore?.name ?? "Unknown store",
+          storeTier: legacyClaimStore?.tier ?? "UNASSIGNED",
+          tierLevel: legacyClaimStore?.tier ?? "UNASSIGNED",
+          qrCode: qrDisplayCode,
+          claimedAt: qrCode.claimed_at,
+          pointValue
+        });
+      }
     } else if (qrCode.status !== "void") {
       group.unclaimedCount += 1;
     }
@@ -487,7 +525,7 @@ function buildQrNetwork({
 type GraphNode = {
   id: string;
   label: string;
-  kind: "distributor" | "size" | "outlet";
+  kind: "distributor" | "size" | "tier2" | "tier3";
   x: number;
   y: number;
 };
@@ -512,12 +550,13 @@ function QrNetworkGraph({ trees }: { trees: QrNetworkGroup[] }) {
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center", padding: "16px 18px", color: "white", borderBottom: "1px solid rgba(255,255,255,.08)", flexWrap: "wrap" }}>
           <div>
             <p style={{ margin: 0, color: "#f8d98a", fontSize: 12, fontWeight: 950, letterSpacing: 1.5, textTransform: "uppercase" }}>Network Map</p>
-            <p style={{ margin: "5px 0 0", color: "rgba(255,255,255,.68)", fontSize: 13 }}>QR batches grouped by distributor, apple size, and claimed outlet</p>
+            <p style={{ margin: "5px 0 0", color: "rgba(255,255,255,.68)", fontSize: 13 }}>QR flow grouped by distributor, apple size, Tier 2 first scan, and Tier 3 second scan</p>
           </div>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <LegendDot color="#f8d98a" label="Distributor" />
             <LegendDot color="#ffffff" label="Size / Campaign" />
-            <LegendDot color="#ff4b6a" label="Claimed Store" />
+            <LegendDot color="#ff4b6a" label="Tier 2 first scan" />
+            <LegendDot color="#7dd3fc" label="Tier 3 second scan" />
           </div>
         </div>
         <svg viewBox="0 0 1100 560" role="img" aria-label="QR market landing network graph" style={{ display: "block", width: "100%", minHeight: 360 }}>
@@ -541,21 +580,21 @@ function QrNetworkGraph({ trees }: { trees: QrNetworkGroup[] }) {
                 key={`${link.sourceId}-${link.targetId}`}
                 d={`M ${source.x} ${source.y} C ${source.x} ${midY}, ${target.x} ${midY}, ${target.x} ${target.y}`}
                 fill="none"
-                stroke={target.kind === "outlet" ? "rgba(255,75,106,.38)" : "rgba(255,255,255,.22)"}
-                strokeWidth={target.kind === "outlet" ? 1.35 : 1.1}
+                stroke={target.kind === "tier3" ? "rgba(125,211,252,.48)" : target.kind === "tier2" ? "rgba(255,75,106,.38)" : "rgba(255,255,255,.22)"}
+                strokeWidth={target.kind === "tier3" || target.kind === "tier2" ? 1.35 : 1.1}
               />
             );
           })}
           {graph.nodes.map((node) => (
             <g key={node.id} transform={`translate(${node.x} ${node.y})`}>
               <circle
-                r={node.kind === "distributor" ? 7 : node.kind === "size" ? 5.5 : 4.5}
-                fill={node.kind === "distributor" ? "#f8d98a" : node.kind === "size" ? "#f4f4f4" : "#ff4b6a"}
-                opacity={node.kind === "outlet" ? 0.92 : 1}
+                r={node.kind === "distributor" ? 7 : node.kind === "size" ? 5.5 : node.kind === "tier2" ? 4.8 : 4.3}
+                fill={node.kind === "distributor" ? "#f8d98a" : node.kind === "size" ? "#f4f4f4" : node.kind === "tier2" ? "#ff4b6a" : "#7dd3fc"}
+                opacity={node.kind === "tier2" || node.kind === "tier3" ? 0.92 : 1}
                 filter="url(#node-glow)"
               />
               <text
-                x={node.kind === "outlet" ? 8 : 9}
+                x={node.kind === "tier2" || node.kind === "tier3" ? 8 : 9}
                 y={node.kind === "distributor" ? -9 : 4}
                 fill={node.kind === "distributor" ? "#f8d98a" : "rgba(255,255,255,.78)"}
                 fontSize={node.kind === "distributor" ? 13 : 10}
@@ -612,19 +651,34 @@ function buildNetworkGraph(trees: QrNetworkGroup[]) {
       });
       addGraphLink(links, distributorId, sizeId);
 
-      const outletNodes = groupClaimsByStore(sizeNode.claims).slice(0, 10);
-      outletNodes.forEach((outlet, outletIndex) => {
-        const outletId = `o:${tree.distributorName}:${sizeNode.label}:${outlet.storeName}:${outletIndex}`;
-        const outletX = sizeX + spreadOffset(outletIndex % 5, Math.min(outletNodes.length, 5), 150);
-        const outletY = 360 + Math.floor(outletIndex / 5) * 52 + ((outletIndex + sizeIndex) % 2) * 18;
+      const tier2Nodes = groupClaimsByTierFlow(sizeNode.claims).slice(0, 8);
+      tier2Nodes.forEach((tier2, tier2Index) => {
+        const tier2Id = `t2:${tree.distributorName}:${sizeNode.label}:${tier2.storeKey}:${tier2Index}`;
+        const tier2X = sizeX + spreadOffset(tier2Index % 4, Math.min(tier2Nodes.length, 4), 180);
+        const tier2Y = 350 + Math.floor(tier2Index / 4) * 44 + ((tier2Index + sizeIndex) % 2) * 16;
         addGraphNode(nodeMap, nodes, {
-          id: outletId,
-          label: `${outlet.storeName} (${outlet.claimCount})`,
-          kind: "outlet",
-          x: clamp(outletX, 35, 1065),
-          y: outletY
+          id: tier2Id,
+          label: `T2 ${tier2.storeName} (${tier2.claimCount})`,
+          kind: "tier2",
+          x: clamp(tier2X, 35, 1065),
+          y: tier2Y
         });
-        addGraphLink(links, sizeId, outletId);
+        addGraphLink(links, sizeId, tier2Id);
+
+        const tier3Nodes = [...tier2.tier3Stores.values()].slice(0, 5);
+        tier3Nodes.forEach((tier3, tier3Index) => {
+          const tier3Id = `t3:${tree.distributorName}:${sizeNode.label}:${tier2.storeKey}:${tier3.storeKey}:${tier3Index}`;
+          const tier3X = tier2X + spreadOffset(tier3Index, tier3Nodes.length, 140);
+          const tier3Y = 455 + Math.floor(tier3Index / 4) * 44 + ((tier3Index + tier2Index) % 2) * 16;
+          addGraphNode(nodeMap, nodes, {
+            id: tier3Id,
+            label: `T3 ${tier3.storeName} (${tier3.claimCount})`,
+            kind: "tier3",
+            x: clamp(tier3X, 35, 1065),
+            y: tier3Y
+          });
+          addGraphLink(links, tier2Id, tier3Id);
+        });
       });
     });
   });
@@ -661,19 +715,63 @@ function shortLabel(value: string, maxLength: number) {
   return value.length > maxLength ? `${value.slice(0, maxLength - 3)}...` : value;
 }
 
-function groupClaimsByStore(claims: QrClaimNode[]) {
-  const groups = new Map<string, { storeName: string; storeTier: StoreTier; claimCount: number; totalPoints: number }>();
+type TierFlowStore = {
+  storeKey: string;
+  storeName: string;
+  storeTier: StoreTier;
+  claimCount: number;
+  totalPoints: number;
+};
+
+type TierFlowGroup = TierFlowStore & {
+  tier3Stores: Map<string, TierFlowStore>;
+};
+
+function groupClaimsByTierFlow(claims: QrClaimNode[]) {
+  const claimsByQr = new Map<string, QrClaimNode[]>();
 
   for (const claim of claims) {
-    const group = groups.get(claim.storeName) ?? {
-      storeName: claim.storeName,
-      storeTier: claim.storeTier,
+    const group = claimsByQr.get(claim.qrCode) ?? [];
+    group.push(claim);
+    claimsByQr.set(claim.qrCode, group);
+  }
+
+  const groups = new Map<string, TierFlowGroup>();
+
+  for (const qrClaims of claimsByQr.values()) {
+    const tier2Claim = qrClaims.find((claim) => claim.tierLevel === "TIER2") ?? qrClaims[0];
+    const tier3Claim = qrClaims.find((claim) => claim.tierLevel === "TIER3");
+
+    if (!tier2Claim) continue;
+
+    const tier2Key = tier2Claim.storeId || tier2Claim.storeName;
+    const tier2Group = groups.get(tier2Key) ?? {
+      storeKey: tier2Key,
+      storeName: tier2Claim.storeName,
+      storeTier: tier2Claim.storeTier,
       claimCount: 0,
-      totalPoints: 0
+      totalPoints: 0,
+      tier3Stores: new Map<string, TierFlowStore>()
     };
-    group.claimCount += 1;
-    group.totalPoints += claim.pointValue;
-    groups.set(claim.storeName, group);
+
+    tier2Group.claimCount += 1;
+    tier2Group.totalPoints += tier2Claim.pointValue;
+
+    if (tier3Claim) {
+      const tier3Key = tier3Claim.storeId || tier3Claim.storeName;
+      const tier3Group = tier2Group.tier3Stores.get(tier3Key) ?? {
+        storeKey: tier3Key,
+        storeName: tier3Claim.storeName,
+        storeTier: tier3Claim.storeTier,
+        claimCount: 0,
+        totalPoints: 0
+      };
+      tier3Group.claimCount += 1;
+      tier3Group.totalPoints += tier3Claim.pointValue;
+      tier2Group.tier3Stores.set(tier3Key, tier3Group);
+    }
+
+    groups.set(tier2Key, tier2Group);
   }
 
   return [...groups.values()].sort((a, b) => b.claimCount - a.claimCount || b.totalPoints - a.totalPoints);
@@ -681,6 +779,10 @@ function groupClaimsByStore(claims: QrClaimNode[]) {
 
 function isQrClaimed(qrCode: QrCodeRecord) {
   return qrCode.status === "claimed" || Boolean(qrCode.claimed_by_outlet_id || qrCode.claimed_at);
+}
+
+function normalizeScanCode(value: string | null | undefined) {
+  return (value ?? "").trim().toUpperCase();
 }
 
 function getQrDistributorName(qrCode: QrCodeRecord) {

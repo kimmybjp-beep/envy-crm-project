@@ -5,6 +5,7 @@ const checklistSections = [
     level: "Critical",
     items: [
       "ตารางหลักพร้อมใช้งาน: stores, scans, qr_batches, qr_codes, rewards, redemptions, fraud_alerts",
+      "stores มี field จังหวัด และ register_scan เป็น version ที่รองรับ 1st scan Tier 2 / 2nd scan Tier 3",
       "Unique constraint กันสแกนซ้ำใน tier เดิมทำงานจริง",
       "Storage bucket รูปหน้าร้าน upload/read ได้"
     ]
@@ -15,6 +16,7 @@ const checklistSections = [
     level: "Critical",
     items: [
       "สมัครร้านใหม่ได้ โดยไม่มีช่อง Tier ให้ร้านเห็น",
+      "ต้องเลือกจังหวัดก่อนส่งสมัคร และ Admin เห็นจังหวัดในรายการร้าน",
       "ถ่ายรูปหน้าร้านจากมือถือได้ และมีข้อความกำกับให้ถ่ายเห็นป้ายชื่อร้าน",
       "หลังสมัครขึ้น popup: ลงทะเบียนร้านเรียบร้อย โปรดรอ อนุมัติ"
     ]
@@ -26,7 +28,7 @@ const checklistSections = [
     items: [
       "Admin เห็นข้อมูลร้าน เบอร์ สถานะ รูปหน้าร้าน preview และ action ชัดเจน",
       "Approve / Reject ใช้งานได้ และร้านที่ยังไม่อนุมัติ Login/Scan ไม่ได้",
-      "Back Office reset password ให้ร้านได้"
+      "Back Office เห็น Password Reset Requests และ reset password ให้ร้านได้"
     ]
   },
   {
@@ -56,6 +58,7 @@ const checklistSections = [
     items: [
       "Live camera scan ใช้งานบนมือถือจริง: Android Chrome และ iPhone Safari/Chrome",
       "สแกน QR ใหม่แล้วแต้มเพิ่ม และบันทึก scan สำเร็จ",
+      "QR เดียวกัน scan ครั้งแรกเป็น Tier 2 และ scan ครั้งที่ 2 โดยร้านอื่นเป็น Tier 3 เพื่อสร้าง wholesale network",
       "สแกนซ้ำในร้าน/tier เดิมแล้วระบบไม่ให้ผ่าน พร้อม log fraud alert ให้ Admin"
     ]
   },
@@ -76,7 +79,7 @@ const checklistSections = [
     items: [
       "Dashboard filter by day/week/month/tier ได้",
       "เห็น Total Rewards Claimed, Pending Fulfillment, Successful Fulfills",
-      "Sales Tree แสดง flow Distributor ไป Tier 2 ไป Tier 3 จากข้อมูล scan จริง"
+      "Sales Tree / QR Market Landing Graph แสดง flow Distributor ไป Size/Campaign ไป Tier 2 ไป Tier 3 จากข้อมูล scan จริง"
     ]
   },
   {

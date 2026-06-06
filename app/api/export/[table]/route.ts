@@ -74,6 +74,7 @@ async function buildBusinessReport(table: string, supabase: ReturnType<typeof ge
       "Store Name",
       "Owner Name",
       "Phone",
+      "Store Province",
       "Store Tier",
       "Store Status",
       "Claimed At",
@@ -96,6 +97,7 @@ async function buildBusinessReport(table: string, supabase: ReturnType<typeof ge
           "Store Name": store?.name ?? "",
           "Owner Name": store?.owner_name ?? "",
           Phone: store?.phone ?? "",
+          "Store Province": store?.province ?? "",
           "Store Tier": store?.tier ?? "",
           "Store Status": store?.status ?? "",
           "Claimed At": formatDateTime(qrCode.claimed_at),
@@ -170,6 +172,7 @@ async function buildBusinessReport(table: string, supabase: ReturnType<typeof ge
     "Store Name",
     "Owner Name",
     "Phone",
+    "Store Province",
     "Store Tier",
     "Store Points Balance"
   ];
@@ -186,6 +189,7 @@ async function buildBusinessReport(table: string, supabase: ReturnType<typeof ge
       "Store Name": store?.name ?? "",
       "Owner Name": store?.owner_name ?? "",
       Phone: store?.phone ?? "",
+      "Store Province": store?.province ?? "",
       "Store Tier": store?.tier ?? "",
       "Store Points Balance": store?.points ?? ""
     };
