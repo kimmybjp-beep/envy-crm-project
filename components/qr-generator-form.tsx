@@ -161,9 +161,9 @@ export function QrGeneratorForm() {
 
   return (
     <section style={{ ...adminUi.panel, overflow: "hidden" }}>
-      <div style={{
+      <div className="qr-generator-hero" style={{
         display: "grid",
-        gridTemplateColumns: "1fr 190px",
+        gridTemplateColumns: "minmax(0, 1fr) 180px",
         gap: 18,
         alignItems: "center",
         padding: 24,
@@ -192,6 +192,7 @@ export function QrGeneratorForm() {
         </div>
         <div style={{
           height: 150,
+          minWidth: 0,
           borderRadius: 26,
           background: "white",
           display: "grid",
@@ -219,9 +220,9 @@ export function QrGeneratorForm() {
         ) : null}
 
         <form onSubmit={handleSubmit} style={{ display: "grid", gap: 16 }}>
-          <div style={{
+          <div className="qr-generator-main-grid" style={{
             display: "grid",
-            gridTemplateColumns: "minmax(220px,1fr) 150px 150px",
+            gridTemplateColumns: "minmax(220px,1fr) minmax(120px,150px) minmax(120px,150px)",
             gap: 14,
             alignItems: "end"
           }}>
@@ -236,9 +237,9 @@ export function QrGeneratorForm() {
             </Field>
           </div>
 
-          <div style={{
+          <div className="qr-generator-detail-grid" style={{
             display: "grid",
-            gridTemplateColumns: "160px 160px minmax(220px,1fr) 150px",
+            gridTemplateColumns: "minmax(130px,160px) minmax(130px,160px) minmax(180px,1fr) minmax(118px,150px)",
             gap: 14,
             alignItems: "end"
           }}>
@@ -268,9 +269,9 @@ export function QrGeneratorForm() {
             </Field>
           </div>
 
-          <div style={{
+          <div className="qr-generator-submit-grid" style={{
             display: "grid",
-            gridTemplateColumns: "minmax(0,1fr) auto",
+            gridTemplateColumns: "minmax(0,1fr) minmax(170px, auto)",
             gap: 14,
             alignItems: "end"
           }}>

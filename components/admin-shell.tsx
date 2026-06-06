@@ -1,5 +1,4 @@
 import Link from "next/link";
-import Image from "next/image";
 import { BarChart3, Database, Gift, QrCode, ShieldCheck, Store } from "lucide-react";
 import { signOutAction } from "@/app/actions/auth";
 
@@ -30,7 +29,7 @@ export function AdminShell({
           margin: "0 auto",
           padding: "18px 20px 0"
         }}>
-          <div style={{
+          <div className="admin-topbar" style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
@@ -45,7 +44,7 @@ export function AdminShell({
               </h1>
               {subtitle ? <p style={{ margin: "8px 0 0", color: "rgba(255,255,255,.76)", fontSize: 14 }}>{subtitle}</p> : null}
             </div>
-            <nav style={{
+            <nav className="admin-nav-pill" style={{
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -78,26 +77,19 @@ export function AdminShell({
             </nav>
           </div>
 
-          <div style={{
+          <div className="admin-hero-card" style={{
             marginTop: 18,
             position: "relative",
             overflow: "hidden",
             borderRadius: 30,
             minHeight: 190,
             padding: 28,
-            background: `linear-gradient(135deg, ${deepRuby}, ${ruby} 62%, #df1238)`,
+            backgroundImage: `linear-gradient(90deg, rgba(78,0,14,.98) 0%, rgba(101,0,19,.92) 38%, rgba(169,0,31,.52) 68%, rgba(223,18,56,.25) 100%), url("https://www.supermarketperimeter.com/ext/resources/2023/11/03/Envy-Supermarket-Perimeter-Video-Image-1200x800.001.jpeg?height=418&t=1698993146&width=800")`,
+            backgroundSize: "cover",
+            backgroundPosition: "center right",
             border: "1px solid rgba(255,255,255,.22)",
             boxShadow: "0 28px 80px rgba(101,0,19,.28)"
           }}>
-            <div style={{
-              position: "absolute",
-              right: -10,
-              top: -42,
-              width: 330,
-              opacity: 0.7
-            }}>
-              <Image src="/envy-apple.svg" alt="ENVY apple" width={360} height={280} priority />
-            </div>
             <div style={{ position: "relative", zIndex: 1 }}>
               <span style={{
                 display: "inline-flex",

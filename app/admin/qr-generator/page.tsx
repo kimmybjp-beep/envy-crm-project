@@ -17,7 +17,7 @@ export default async function QrGeneratorPage() {
 
   return (
     <AdminShell title="QR Generator" subtitle="Create ENVY Partner Rewards sticker kits by distributor and apple size">
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) 370px", gap: 18 }}>
+      <div className="admin-qr-layout" style={{ display: "grid", gridTemplateColumns: "minmax(0,1fr) minmax(300px, 370px)", gap: 18, alignItems: "start" }}>
         <QrGeneratorForm />
         <aside style={{ display: "grid", gap: 18 }}>
           <section style={{ ...adminUi.panel, padding: 22 }}>

@@ -35,3 +35,59 @@ body {
   border-color: #7b0b22;
   box-shadow: 0 0 0 4px rgba(217, 183, 111, 0.2);
 }
+
+.admin-topbar,
+.admin-nav-pill,
+.admin-qr-layout,
+.qr-generator-hero,
+.qr-generator-main-grid,
+.qr-generator-detail-grid,
+.qr-generator-submit-grid {
+  min-width: 0;
+}
+
+.admin-nav-pill {
+  flex-wrap: wrap;
+}
+
+.admin-qr-layout > *,
+.qr-generator-main-grid > *,
+.qr-generator-detail-grid > *,
+.qr-generator-submit-grid > * {
+  min-width: 0;
+}
+
+@media (max-width: 1120px) {
+  .admin-topbar {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .admin-nav-pill {
+    align-self: stretch;
+    border-radius: 24px !important;
+  }
+
+  .admin-qr-layout {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .admin-hero-card {
+    border-radius: 24px !important;
+    min-height: 220px !important;
+    background-position: center !important;
+  }
+
+  .qr-generator-hero,
+  .qr-generator-main-grid,
+  .qr-generator-detail-grid,
+  .qr-generator-submit-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .qr-generator-submit-grid button {
+    width: 100%;
+  }
+}
