@@ -35,7 +35,7 @@ export function AdminShell({
             justifyContent: "space-between",
             gap: 16
           }}>
-            <div>
+            <div className="admin-title-block">
               <div style={{ fontSize: 12, fontWeight: 900, letterSpacing: 2, textTransform: "uppercase", opacity: 0.82 }}>
                 ENVY Back Office
               </div>
@@ -58,8 +58,8 @@ export function AdminShell({
               <AdminNav href="/admin/rewards" icon={<Gift size={16} />} label="Rewards" />
               <AdminNav href="/admin/database" icon={<Database size={16} />} label="Data" />
               <AdminNav href="/admin/qr-generator" icon={<QrCode size={16} />} label="QR" />
-              <form action={signOutAction}>
-                <button style={{
+              <form action={signOutAction} className="admin-logout-form">
+                <button className="admin-logout-button" style={{
                   display: "inline-flex",
                   alignItems: "center",
                   gap: 7,
@@ -123,7 +123,7 @@ export function AdminShell({
 
 function AdminNav({ href, icon, label }: { href: string; icon: React.ReactNode; label: string }) {
   return (
-    <Link href={href} style={{
+    <Link className="admin-nav-link" href={href} style={{
       display: "inline-flex",
       alignItems: "center",
       gap: 7,

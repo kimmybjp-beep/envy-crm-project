@@ -37,7 +37,11 @@ body {
 }
 
 .admin-topbar,
+.admin-title-block,
 .admin-nav-pill,
+.admin-nav-link,
+.admin-logout-form,
+.admin-logout-button,
 .admin-qr-layout,
 .qr-generator-hero,
 .qr-generator-main-grid,
@@ -48,6 +52,21 @@ body {
 
 .admin-nav-pill {
   flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 100%;
+}
+
+.admin-title-block {
+  flex: 1 1 300px;
+}
+
+.admin-nav-link,
+.admin-logout-button {
+  white-space: nowrap;
+}
+
+.admin-logout-form {
+  display: flex;
 }
 
 .admin-qr-layout > *,
@@ -57,7 +76,163 @@ body {
   min-width: 0;
 }
 
-@media (max-width: 1120px) {
+.pitch-progress {
+  position: fixed;
+  left: 0;
+  right: 0;
+  top: 0;
+  z-index: 60;
+  height: 3px;
+  background: linear-gradient(90deg, #f5d58c, #ffffff, #b50022);
+  box-shadow: 0 0 22px rgba(245, 213, 140, 0.65);
+  transform: scaleX(0);
+  transform-origin: left center;
+}
+
+.pitch-page {
+  position: relative;
+  overflow-x: hidden;
+}
+
+.pitch-page::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(245, 213, 140, 0.22), transparent 22rem),
+    radial-gradient(circle at 82% 34%, rgba(181, 0, 34, 0.16), transparent 28rem),
+    radial-gradient(circle at 50% 88%, rgba(84, 0, 15, 0.1), transparent 24rem);
+}
+
+.pitch-page > * {
+  position: relative;
+  z-index: 1;
+}
+
+.pitch-hero {
+  position: relative;
+  isolation: isolate;
+}
+
+.pitch-hero::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  background: conic-gradient(from 120deg, transparent, rgba(245, 213, 140, 0.2), transparent, rgba(255, 255, 255, 0.18), transparent);
+  animation: pitchOrbitalGlow 14s linear infinite;
+}
+
+.pitch-hero::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.13) 42%, transparent 56%);
+  transform: translateX(-120%);
+  animation: pitchHeroShine 5.5s ease-in-out infinite;
+}
+
+.pitch-glass-card,
+.pitch-flow-card,
+.pitch-control-card,
+.pitch-phone-tile,
+.pitch-logic-card,
+.pitch-network-panel {
+  transition: transform 220ms ease, box-shadow 220ms ease, border-color 220ms ease;
+}
+
+.pitch-glass-card:hover,
+.pitch-flow-card:hover,
+.pitch-control-card:hover,
+.pitch-phone-tile:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 28px 80px rgba(101, 0, 19, 0.18);
+}
+
+.pitch-tree-row span {
+  position: relative;
+  overflow: hidden;
+}
+
+.pitch-tree-row span::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.18), transparent);
+  transform: translateX(-110%);
+  animation: pitchNodeSweep 4.5s ease-in-out infinite;
+}
+
+.pitch-enhanced .pitch-reveal,
+.pitch-enhanced .pitch-stagger > * {
+  opacity: 0;
+  filter: blur(18px);
+  transform: translateY(54px) scale(0.98);
+  transition:
+    opacity 760ms cubic-bezier(.2, .8, .2, 1),
+    filter 760ms cubic-bezier(.2, .8, .2, 1),
+    transform 760ms cubic-bezier(.2, .8, .2, 1);
+}
+
+.pitch-enhanced .pitch-reveal-zoom {
+  transform: translateY(40px) scale(0.94);
+}
+
+.pitch-enhanced .pitch-reveal.is-visible,
+.pitch-enhanced .pitch-stagger > *.is-visible {
+  opacity: 1;
+  filter: blur(0);
+  transform: translateY(0) scale(1);
+}
+
+.pitch-enhanced .pitch-stagger > *:nth-child(2) {
+  transition-delay: 90ms;
+}
+
+.pitch-enhanced .pitch-stagger > *:nth-child(3) {
+  transition-delay: 180ms;
+}
+
+.pitch-enhanced .pitch-stagger > *:nth-child(4) {
+  transition-delay: 270ms;
+}
+
+.pitch-enhanced .pitch-stagger > *:nth-child(5) {
+  transition-delay: 360ms;
+}
+
+.pitch-enhanced .pitch-stagger > *:nth-child(6) {
+  transition-delay: 450ms;
+}
+
+@keyframes pitchOrbitalGlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pitchHeroShine {
+  0%, 42% {
+    transform: translateX(-120%);
+  }
+  72%, 100% {
+    transform: translateX(120%);
+  }
+}
+
+@keyframes pitchNodeSweep {
+  0%, 55% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(110%);
+  }
+}
+
+@media (max-width: 1240px) {
   .admin-topbar {
     align-items: flex-start !important;
     flex-direction: column;
@@ -66,10 +241,30 @@ body {
   .admin-nav-pill {
     align-self: stretch;
     border-radius: 24px !important;
+    justify-content: flex-start;
   }
 
   .admin-qr-layout {
     grid-template-columns: 1fr !important;
+  }
+}
+
+@media (max-width: 880px) {
+  .admin-nav-pill {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px !important;
+  }
+
+  .admin-nav-link,
+  .admin-logout-button {
+    justify-content: center;
+    width: 100%;
+    padding: 10px 8px !important;
+  }
+
+  .admin-logout-form {
+    width: 100%;
   }
 }
 
@@ -89,5 +284,27 @@ body {
 
   .qr-generator-submit-grid button {
     width: 100%;
+  }
+}
+
+@media (max-width: 560px) {
+  .admin-nav-pill {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pitch-hero::before,
+  .pitch-hero::after,
+  .pitch-tree-row span::after {
+    animation: none;
+  }
+
+  .pitch-enhanced .pitch-reveal,
+  .pitch-enhanced .pitch-stagger > * {
+    opacity: 1;
+    filter: none;
+    transform: none;
+    transition: none;
   }
 }

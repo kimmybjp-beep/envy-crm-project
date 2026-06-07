@@ -17,6 +17,7 @@ import {
   Store,
   Truck
 } from "lucide-react";
+import { PitchScrollEffects } from "@/components/pitch-scroll-effects";
 
 const ruby = "#b50022";
 const deepRuby = "#54000f";
@@ -93,7 +94,8 @@ const rolloutSteps = [
 
 export default function PitchPage() {
   return (
-    <main style={{ minHeight: "100vh", background: "linear-gradient(180deg, #b50022 0 360px, #fff1f4 360px 100%)", color: charcoal }}>
+    <main className="pitch-page" style={{ minHeight: "100vh", background: "linear-gradient(180deg, #b50022 0 360px, #fff1f4 360px 100%)", color: charcoal }}>
+      <PitchScrollEffects />
       <header className="sticky top-0 z-30 border-b border-white/10 bg-[#8b0018]/88 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link href="/" className="flex items-center gap-3 text-white no-underline">
@@ -117,7 +119,7 @@ export default function PitchPage() {
 
       <section className="mx-auto max-w-7xl px-4 pb-10 pt-8 sm:px-6 sm:pt-12">
         <div
-          className="overflow-hidden rounded-[34px] border border-white/18 shadow-[0_32px_90px_rgba(84,0,15,0.28)]"
+          className="pitch-hero pitch-reveal pitch-reveal-zoom overflow-hidden rounded-[34px] border border-white/18 shadow-[0_32px_90px_rgba(84,0,15,0.28)]"
           style={{
             backgroundImage: `linear-gradient(90deg, rgba(84,0,15,.98) 0%, rgba(128,0,24,.88) 44%, rgba(181,0,34,.36) 100%), url("${envyImage}")`,
             backgroundPosition: "center right",
@@ -150,7 +152,7 @@ export default function PitchPage() {
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-[#f5d58c]">Business Objective</p>
                 <p className="mt-3 text-2xl font-black leading-tight">Know where the product goes, reward the stores that participate, and detect abnormal scan behavior.</p>
               </div>
-              <div className="grid gap-3 sm:grid-cols-3">
+              <div className="pitch-stagger grid gap-3 sm:grid-cols-3">
                 <MiniMetric value="2x" label="QR scan layers" />
                 <MiniMetric value="09:30" label="LINE daily summary" />
                 <MiniMetric value="CSV" label="Export ready" />
@@ -160,29 +162,29 @@ export default function PitchPage() {
         </div>
       </section>
 
-      <section id="flow" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section id="flow" className="pitch-section pitch-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <SectionIntro
           kicker="Supply Chain Flow"
           title="From T&G carton to store reward activity"
           text="The pitch makes the operational journey clear: goods move physically, QR data moves digitally, and the reward layer motivates stores to participate."
         />
-        <div className="mt-6 grid gap-4 lg:grid-cols-5">
+        <div className="pitch-stagger mt-6 grid gap-4 lg:grid-cols-5">
           {flowSteps.map((step, index) => (
             <FlowCard key={step.title} index={index + 1} {...step} />
           ))}
         </div>
       </section>
 
-      <section id="demo" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section id="demo" className="pitch-section pitch-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="grid gap-5 lg:grid-cols-[.95fr_1.05fr]">
-          <div className="rounded-[28px] bg-white p-6 shadow-[0_20px_70px_rgba(101,0,19,.13)] ring-1 ring-[#650013]/10 sm:p-8">
+          <div className="pitch-glass-card rounded-[28px] bg-white p-6 shadow-[0_20px_70px_rgba(101,0,19,.13)] ring-1 ring-[#650013]/10 sm:p-8">
             <SectionIntro
               kicker="Live Demo Journey"
               title="Register, approve, scan, earn, redeem"
               text="This is the simplest management narrative: a real store joins the program, is controlled by Back Office, then starts generating measurable scan and reward data."
               compact
             />
-            <div className="mt-6 grid gap-3">
+            <div className="pitch-stagger mt-6 grid gap-3">
               {demoSteps.map((step, index) => (
                 <div key={step} className="flex gap-4 rounded-2xl border border-[#650013]/10 bg-[#fff8fa] p-4">
                   <span className="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-[#b50022] text-sm font-black text-white">{index + 1}</span>
@@ -193,7 +195,7 @@ export default function PitchPage() {
           </div>
 
           <div className="grid gap-5">
-            <div className="rounded-[28px] bg-[#650013] p-6 text-white shadow-[0_20px_70px_rgba(101,0,19,.2)] sm:p-8">
+            <div className="pitch-glass-card rounded-[28px] bg-[#650013] p-6 text-white shadow-[0_20px_70px_rgba(101,0,19,.2)] sm:p-8">
               <div className="flex items-center gap-3">
                 <span className="grid h-12 w-12 place-items-center rounded-2xl bg-white/12 text-[#f5d58c]">
                   <ShieldAlert size={25} />
@@ -203,16 +205,16 @@ export default function PitchPage() {
                   <h2 className="m-0 mt-1 text-2xl font-black">One QR, two valid network signals</h2>
                 </div>
               </div>
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
+              <div className="pitch-stagger mt-6 grid gap-3 sm:grid-cols-3">
                 <LogicCard title="1st Scan" text="Tier 2 first claim earns points and starts the network path." />
                 <LogicCard title="2nd Scan" text="Tier 3 second claim is allowed from another approved store." />
                 <LogicCard title="Duplicate" text="Same-tier duplicate is blocked and logged as a fraud alert." />
               </div>
             </div>
 
-            <div className="rounded-[28px] bg-white p-6 shadow-[0_20px_70px_rgba(101,0,19,.13)] ring-1 ring-[#650013]/10 sm:p-8">
+            <div className="pitch-glass-card rounded-[28px] bg-white p-6 shadow-[0_20px_70px_rgba(101,0,19,.13)] ring-1 ring-[#650013]/10 sm:p-8">
               <p className="m-0 text-xs font-black uppercase tracking-[0.18em]" style={{ color: ruby }}>Store Screen Preview</p>
-              <div className="mt-5 grid gap-4 sm:grid-cols-3">
+              <div className="pitch-stagger mt-5 grid gap-4 sm:grid-cols-3">
                 <PhoneTile icon={<Store size={24} />} title="Home" text="Store name, current points, and admin message." />
                 <PhoneTile icon={<QrCode size={24} />} title="Scan" text="Scan ENVY carton QR stickers to earn points." />
                 <PhoneTile icon={<Gift size={24} />} title="Rewards" text="Redeem company reward campaigns with points." />
@@ -222,13 +224,13 @@ export default function PitchPage() {
         </div>
       </section>
 
-      <section id="control" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section id="control" className="pitch-section pitch-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <SectionIntro
           kicker="Admin Control"
           title="Back Office keeps the database clean before stores can scan"
           text="Stores cannot scan immediately after registration. Admin approval, password reset, reward fulfillment, and fraud review stay under T&G control."
         />
-        <div className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className="pitch-stagger mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <ControlCard icon={<ClipboardCheck />} title="Store Approval" text="Review storefront photo, province, phone number, and store details before approval." />
           <ControlCard icon={<LockKeyhole />} title="Password Reset" text="Stores can request help, while Back Office manually verifies and resets passwords." />
           <ControlCard icon={<BellRing />} title="LINE Alerts" text="Daily operation summaries and follow-up alerts can be sent to LINE at 09:30." />
@@ -236,8 +238,8 @@ export default function PitchPage() {
         </div>
       </section>
 
-      <section id="dashboard" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
-        <div className="rounded-[32px] bg-white p-5 shadow-[0_24px_80px_rgba(101,0,19,.14)] ring-1 ring-[#650013]/10 sm:p-8">
+      <section id="dashboard" className="pitch-section pitch-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6">
+        <div className="pitch-glass-card rounded-[32px] bg-white p-5 shadow-[0_24px_80px_rgba(101,0,19,.14)] ring-1 ring-[#650013]/10 sm:p-8">
           <div className="grid gap-8 lg:grid-cols-[.95fr_1.05fr]">
             <div>
               <SectionIntro
@@ -246,7 +248,7 @@ export default function PitchPage() {
                 text="Management can filter by day, week, month, tier, distributor, apple size, and campaign. Data can be exported for Excel, Google Sheets, or weekly review decks."
                 compact
               />
-              <div className="mt-6 grid gap-3 sm:grid-cols-2">
+              <div className="pitch-stagger mt-6 grid gap-3 sm:grid-cols-2">
                 {dashboardCards.map((card) => (
                   <div key={card.label} className="rounded-2xl border border-[#650013]/10 bg-[#fff8fa] p-4">
                     <p className="m-0 text-3xl font-black" style={{ color: ruby }}>{card.value}</p>
@@ -256,7 +258,7 @@ export default function PitchPage() {
                 ))}
               </div>
             </div>
-            <div className="rounded-[26px] bg-[#171717] p-5 text-white">
+            <div className="pitch-network-panel rounded-[26px] bg-[#171717] p-5 text-white">
               <div className="flex items-center justify-between gap-3">
                 <div>
                   <p className="m-0 text-xs font-black uppercase tracking-[0.18em] text-white/50">Sales Tree Flow</p>
@@ -264,7 +266,7 @@ export default function PitchPage() {
                 </div>
                 <LineChart color={champagne} size={34} />
               </div>
-              <div className="mt-7 grid gap-4">
+              <div className="pitch-stagger mt-7 grid gap-4">
                 <TreeRow source="T&G" middle="Distributor A" target="Size 24 / Jumbo Bonus" />
                 <TreeRow source="Distributor A" middle="Wholesale Store A" target="Tier 2 first scan" tone="red" />
                 <TreeRow source="Wholesale Store A" middle="Retail Store B" target="Tier 3 second scan" tone="blue" />
@@ -279,9 +281,9 @@ export default function PitchPage() {
         </div>
       </section>
 
-      <section id="rollout" className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
+      <section id="rollout" className="pitch-section pitch-reveal mx-auto max-w-7xl px-4 py-8 sm:px-6">
         <div className="grid gap-5 lg:grid-cols-[1fr_.85fr]">
-          <div className="rounded-[32px] bg-[#650013] p-6 text-white shadow-[0_24px_80px_rgba(101,0,19,.18)] sm:p-8">
+          <div className="pitch-glass-card rounded-[32px] bg-[#650013] p-6 text-white shadow-[0_24px_80px_rgba(101,0,19,.18)] sm:p-8">
             <SectionIntro
               kicker="Pilot Rollout Plan"
               title="Start small, prove adoption, then expand by distributor"
@@ -289,7 +291,7 @@ export default function PitchPage() {
               compact
               inverted
             />
-            <div className="mt-6 grid gap-3">
+            <div className="pitch-stagger mt-6 grid gap-3">
               {rolloutSteps.map((item) => (
                 <div key={item} className="flex gap-3 rounded-2xl border border-white/10 bg-white/8 p-4">
                   <CheckCircle2 className="shrink-0 text-[#f5d58c]" size={22} />
@@ -299,9 +301,9 @@ export default function PitchPage() {
             </div>
           </div>
 
-          <div className="rounded-[32px] bg-white p-6 shadow-[0_24px_80px_rgba(101,0,19,.14)] ring-1 ring-[#650013]/10 sm:p-8">
+          <div className="pitch-glass-card rounded-[32px] bg-white p-6 shadow-[0_24px_80px_rgba(101,0,19,.14)] ring-1 ring-[#650013]/10 sm:p-8">
             <p className="m-0 text-xs font-black uppercase tracking-[0.18em]" style={{ color: ruby }}>Expected Outcome</p>
-            <div className="mt-6 grid gap-3">
+            <div className="pitch-stagger mt-6 grid gap-3">
               {outcomes.map((item) => (
                 <div key={item} className="rounded-2xl bg-[#fff1f4] p-4 font-bold leading-7 text-[#151313]/76">
                   {item}
@@ -369,7 +371,7 @@ function MiniMetric({ value, label }: { value: string; label: string }) {
 
 function FlowCard({ icon, index, title, text }: { icon: React.ReactNode; index: number; title: string; text: string }) {
   return (
-    <div className="relative rounded-[26px] bg-white p-5 shadow-[0_18px_60px_rgba(101,0,19,.12)] ring-1 ring-[#650013]/10">
+    <div className="pitch-flow-card relative rounded-[26px] bg-white p-5 shadow-[0_18px_60px_rgba(101,0,19,.12)] ring-1 ring-[#650013]/10">
       <div className="flex items-center justify-between gap-3">
         <span className="grid h-12 w-12 place-items-center rounded-2xl text-white" style={{ background: index === 1 ? deepRuby : ruby }}>
           {icon}
@@ -385,7 +387,7 @@ function FlowCard({ icon, index, title, text }: { icon: React.ReactNode; index: 
 
 function LogicCard({ title, text }: { title: string; text: string }) {
   return (
-    <div className="rounded-2xl border border-white/10 bg-white/8 p-4">
+    <div className="pitch-logic-card rounded-2xl border border-white/10 bg-white/8 p-4">
       <p className="m-0 text-lg font-black text-white">{title}</p>
       <p className="m-0 mt-2 text-sm leading-6 text-white/64">{text}</p>
     </div>
@@ -394,7 +396,7 @@ function LogicCard({ title, text }: { title: string; text: string }) {
 
 function PhoneTile({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
   return (
-    <div className="rounded-[22px] border border-[#650013]/10 bg-white p-4 shadow-sm">
+    <div className="pitch-phone-tile rounded-[22px] border border-[#650013]/10 bg-white p-4 shadow-sm">
       <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#54000f] text-white">{icon}</span>
       <p className="m-0 mt-4 text-xl font-black">{title}</p>
       <p className="m-0 mt-2 text-sm leading-6 text-[#151313]/60">{text}</p>
@@ -404,7 +406,7 @@ function PhoneTile({ icon, title, text }: { icon: React.ReactNode; title: string
 
 function ControlCard({ icon, title, text }: { icon: React.ReactNode; title: string; text: string }) {
   return (
-    <div className="rounded-[26px] bg-white p-5 shadow-[0_18px_60px_rgba(101,0,19,.12)] ring-1 ring-[#650013]/10">
+    <div className="pitch-control-card rounded-[26px] bg-white p-5 shadow-[0_18px_60px_rgba(101,0,19,.12)] ring-1 ring-[#650013]/10">
       <span className="grid h-12 w-12 place-items-center rounded-2xl bg-[#fff1f4] text-[#b50022]">{icon}</span>
       <h3 className="m-0 mt-5 text-xl font-black">{title}</h3>
       <p className="m-0 mt-3 text-sm leading-6 text-[#151313]/62">{text}</p>
@@ -416,7 +418,7 @@ function TreeRow({ source, middle, target, tone = "gold" }: { source: string; mi
   const color = tone === "blue" ? "#60a5fa" : tone === "red" ? "#fb7185" : "#f5d58c";
 
   return (
-    <div className="grid items-center gap-3 text-sm font-black sm:grid-cols-[1fr_auto_1fr_auto_1fr]">
+    <div className="pitch-tree-row grid items-center gap-3 text-sm font-black sm:grid-cols-[1fr_auto_1fr_auto_1fr]">
       <span className="rounded-2xl bg-white/8 px-4 py-3 text-white/82">{source}</span>
       <ArrowRight className="hidden sm:block" color={color} size={20} />
       <span className="rounded-2xl bg-white/8 px-4 py-3 text-white/82">{middle}</span>
