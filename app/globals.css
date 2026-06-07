@@ -204,7 +204,7 @@ body {
   color: #fff;
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.12em;
+  letter-spacing: 0;
   opacity: 0;
   padding: 7px 10px;
   pointer-events: none;
@@ -246,14 +246,14 @@ body {
   font-family: Georgia, "Times New Roman", serif;
   font-size: 42px;
   font-weight: 900;
-  letter-spacing: -0.06em;
+  letter-spacing: 0;
 }
 
 .pitch-envy-product {
   margin-left: 0.1rem;
   font-size: 11px;
   font-weight: 900;
-  letter-spacing: 0.16em;
+  letter-spacing: 0;
   text-transform: uppercase;
 }
 
