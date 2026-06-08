@@ -155,7 +155,7 @@ export const englishPitchContent: PitchDeckContent = {
     metrics: [
       { value: "GT", label: "Market activation" },
       { value: "Tier 2/3", label: "Outlet visibility" },
-      { value: "Size 24", label: "Growth trigger" }
+      { value: "Large Size", label: "Growth trigger" }
     ]
   },
   gap: {
@@ -168,7 +168,7 @@ export const englishPitchContent: PitchDeckContent = {
         text: "We do not clearly know which outlets receive ENVY after distributor handoff."
       },
       {
-        title: "Size 24 movement risk",
+        title: "Large Size movement risk",
         text: "Larger sizes need stronger market triggers to reduce aging risk."
       },
       {
@@ -224,7 +224,7 @@ export const englishPitchContent: PitchDeckContent = {
         highlight: "Gold Reward Campaign",
         title: "Sell ENVY, win gold",
         subtitle: "For Tier 2 / Wholesale Partners",
-        text: "Every participating carton scan earns points and lucky draw chances. Size 24 can receive bonus points to help accelerate movement."
+        text: "Every participating carton scan earns points and lucky draw chances. Large Size cartons can receive bonus points to help accelerate movement."
       },
       {
         accent: "purple",
@@ -270,14 +270,14 @@ export const englishPitchContent: PitchDeckContent = {
       { label: "Active outlets", value: "By distributor", text: "See which distributors generate downstream participation." },
       { label: "Scan rate", value: "By size", text: "Understand which apple sizes are moving and where support is needed." },
       { label: "GT layer", value: "Tier 2 vs Tier 3", text: "Separate wholesaler and retail outlet participation." },
-      { label: "Size 24 signal", value: "Movement", text: "Identify if the large-size campaign is creating market pull." },
+      { label: "Large Size signal", value: "Movement", text: "Identify if the large-size campaign is creating market pull." },
       { label: "Sales follow-up", value: "Top outlets", text: "Prioritize stores that show participation and growth potential." },
       { label: "Campaign liability", value: "Reward cost", text: "Track cost exposure from points and reward claims." }
     ],
     panelKicker: "Commercial Signal Flow",
     panelTitle: "Campaign data becomes sales action",
     rows: [
-      { source: "Distributor A", middle: "Active Tier 2", target: "Size 24 scan signal" },
+      { source: "Distributor A", middle: "Active Tier 2", target: "Large Size scan signal" },
       { source: "Sales Team", middle: "Top outlet list", target: "Activation visit", tone: "red" },
       { source: "Trade Marketing", middle: "Reward budget", target: "Campaign decision", tone: "blue" }
     ]
@@ -285,7 +285,7 @@ export const englishPitchContent: PitchDeckContent = {
   pilot: {
     kicker: "30-Day Pilot Plan",
     title: "Start with a focused pilot before scaling.",
-    text: "A 30-day pilot lets T&G validate campaign mechanics, distributor process, outlet response, Size 24 movement, and reward cost before a wider rollout.",
+    text: "A 30-day pilot lets T&G validate campaign mechanics, distributor process, outlet response, Large Size movement, and reward cost before a wider rollout.",
     weeks: [
       {
         week: "Week 1",
@@ -295,7 +295,7 @@ export const englishPitchContent: PitchDeckContent = {
       {
         week: "Week 2",
         title: "Launch",
-        bullets: ["Train 1-2 cooperative distributors", "Start with Size 24 plus one fast-moving size"]
+        bullets: ["Train 1-2 cooperative distributors", "Start with Large Size plus one fast-moving size"]
       },
       {
         week: "Week 3",
@@ -305,7 +305,7 @@ export const englishPitchContent: PitchDeckContent = {
       {
         week: "Week 4",
         title: "Review",
-        bullets: ["Review scan rate, approved outlets, repeat scans, Size 24 movement, reward cost, and outlet feedback"]
+        bullets: ["Review scan rate, approved outlets, repeat scans, Large Size movement, reward cost, and outlet feedback"]
       }
     ],
     outcomeKicker: "Expected Outcome",
@@ -345,7 +345,7 @@ export const thaiPitchContent: PitchDeckContent = {
     metrics: [
       { value: "GT", label: "Market activation" },
       { value: "Tier 2/3", label: "Outlet visibility" },
-      { value: "Size 24", label: "Growth trigger" }
+      { value: "Large Size", label: "Growth trigger" }
     ]
   },
   gap: {
@@ -358,7 +358,7 @@ export const thaiPitchContent: PitchDeckContent = {
         text: "ยังไม่รู้ชัดว่าหลัง Distributor ส่งต่อแล้ว ENVY ไปถึง outlet ใดบ้าง"
       },
       {
-        title: "Size 24 movement risk",
+        title: "Large Size movement risk",
         text: "แอปเปิ้ล size ใหญ่ต้องมี market trigger ที่แรงพอ เพื่อลดความเสี่ยงสินค้า aging"
       },
       {
@@ -414,7 +414,7 @@ export const thaiPitchContent: PitchDeckContent = {
         highlight: "Gold Reward Campaign",
         title: "ขาย Envy ลุ้นทองคำ",
         subtitle: "สำหรับ Tier 2 / Wholesale Partners",
-        text: "ทุก carton scan ที่เข้าร่วมจะสะสมแต้มและสิทธิ์ลุ้นรางวัล โดย Size 24 สามารถให้ bonus points เพื่อช่วยเร่งการระบายสินค้า"
+        text: "ทุก carton scan ที่เข้าร่วมจะสะสมแต้มและสิทธิ์ลุ้นรางวัล โดย Large Size สามารถให้ bonus points เพื่อช่วยเร่งการระบายสินค้า"
       },
       {
         accent: "purple",
@@ -460,14 +460,14 @@ export const thaiPitchContent: PitchDeckContent = {
       { label: "Active outlets", value: "By distributor", text: "เห็นว่า Distributor ใดสร้าง downstream participation ได้" },
       { label: "Scan rate", value: "By size", text: "เข้าใจว่า apple size ใดขยับดี และจุดไหนต้อง support" },
       { label: "GT layer", value: "Tier 2 vs Tier 3", text: "แยก participation ของร้านค้าส่งและร้านค้าปลีก" },
-      { label: "Size 24 signal", value: "Movement", text: "ดูว่า campaign size ใหญ่เริ่มสร้าง market pull ได้หรือไม่" },
+      { label: "Large Size signal", value: "Movement", text: "ดูว่า campaign size ใหญ่เริ่มสร้าง market pull ได้หรือไม่" },
       { label: "Sales follow-up", value: "Top outlets", text: "จัดลำดับร้านค้าที่ควรให้ทีมขายเข้าไป activate ต่อ" },
       { label: "Campaign liability", value: "Reward cost", text: "ติดตามต้นทุนจากแต้มและการ claim ของรางวัล" }
     ],
     panelKicker: "Commercial Signal Flow",
     panelTitle: "Campaign data becomes sales action",
     rows: [
-      { source: "Distributor A", middle: "Active Tier 2", target: "Size 24 scan signal" },
+      { source: "Distributor A", middle: "Active Tier 2", target: "Large Size scan signal" },
       { source: "Sales Team", middle: "Top outlet list", target: "Activation visit", tone: "red" },
       { source: "Trade Marketing", middle: "Reward budget", target: "Campaign decision", tone: "blue" }
     ]
@@ -475,7 +475,7 @@ export const thaiPitchContent: PitchDeckContent = {
   pilot: {
     kicker: "30-Day Pilot Plan",
     title: "เริ่ม pilot 30 วัน ก่อนขยายจริง",
-    text: "Pilot 30 วันช่วย validate campaign mechanics, distributor process, outlet response, Size 24 movement และ reward cost ก่อน rollout ใหญ่",
+    text: "Pilot 30 วันช่วย validate campaign mechanics, distributor process, outlet response, Large Size movement และ reward cost ก่อน rollout ใหญ่",
     weeks: [
       {
         week: "Week 1",
@@ -485,7 +485,7 @@ export const thaiPitchContent: PitchDeckContent = {
       {
         week: "Week 2",
         title: "Launch",
-        bullets: ["Train 1-2 cooperative distributors", "Start with Size 24 plus one fast-moving size"]
+        bullets: ["Train 1-2 cooperative distributors", "Start with Large Size plus one fast-moving size"]
       },
       {
         week: "Week 3",
@@ -495,7 +495,7 @@ export const thaiPitchContent: PitchDeckContent = {
       {
         week: "Week 4",
         title: "Review",
-        bullets: ["Review scan rate, approved outlets, repeat scans, Size 24 movement, reward cost, and outlet feedback"]
+        bullets: ["Review scan rate, approved outlets, repeat scans, Large Size movement, reward cost, and outlet feedback"]
       }
     ],
     outcomeKicker: "Expected Outcome",
