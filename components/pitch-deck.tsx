@@ -222,14 +222,14 @@ export const englishPitchContent: PitchDeckContent = {
       {
         accent: "gold",
         highlight: "Gold Reward Campaign",
-        title: "ขาย Envy ลุ้นทองคำ",
+        title: "Sell ENVY, win gold",
         subtitle: "For Tier 2 / Wholesale Partners",
         text: "Every participating carton scan earns points and lucky draw chances. Size 24 can receive bonus points to help accelerate movement."
       },
       {
         accent: "purple",
         highlight: "Premium Outlet Campaign",
-        title: "สแกน Envy ลุ้น iPhone",
+        title: "Scan ENVY, win iPhone",
         subtitle: "For Tier 3 / Retail Outlets",
         text: "Retail outlets scan carton QR codes, collect points, and earn lucky draw chances for premium rewards."
       }
